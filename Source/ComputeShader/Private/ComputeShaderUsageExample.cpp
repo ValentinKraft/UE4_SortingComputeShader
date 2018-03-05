@@ -44,13 +44,18 @@ FComputeShaderUsageExample::FComputeShaderUsageExample(float SimulationSpeed, in
     //http://www.gamedev.net/topic/605356-r8g8b8a8-texture-format-in-compute-shader/
 	//https://msdn.microsoft.com/en-us/library/ff728749(v=vs.85).aspx
 	FRHIResourceCreateInfo CreateInfo;
-	Texture = RHICreateTexture2D(SizeX, SizeY, PF_R32_UINT, 1, 1, TexCreate_ShaderResource | TexCreate_UAV, CreateInfo);
+	Texture = RHICreateTexture2D(SizeX, SizeY, PF_A32B32G32R32F, 1, 1, TexCreate_ShaderResource | TexCreate_UAV, CreateInfo);
 	TextureUAV = RHICreateUnorderedAccessView(Texture);
+
+	m_pointPosBuffer = new float[SizeX*SizeY*4];
+	for (int i = 0; i < SizeX*SizeY*4; i++)
+		m_pointPosBuffer[i] = 0.0f;
 }
 
 FComputeShaderUsageExample::~FComputeShaderUsageExample()
 {
 	bIsUnloading = true;
+	if (m_pointPosBuffer) delete m_pointPosBuffer; m_pointPosBuffer = nullptr;
 }
 
 void FComputeShaderUsageExample::ExecuteComputeShader(float TotalElapsedTimeSeconds)
@@ -90,6 +95,34 @@ void FComputeShaderUsageExample::ExecuteComputeShaderInternal()
 
 		return;
 	}
+
+
+	// FASTER: RHIUpdateTexture2D(Texture, 0, m_regions[0], m_Dimensions.X * 4, CurrentFrame->GetData());
+
+	///////////////// New: Fill texture with pointPositions /////////////
+	if (m_pointPosBuffer == nullptr)
+		return;
+
+	uint32 DestStride;
+	uint32* DestBuffer = (uint32*)RHILockTexture2D(Texture, 0, RLM_WriteOnly, DestStride, false);
+
+	// Test data
+	int BufferSize = Texture->GetSizeX() * Texture->GetSizeY() * 4;	//4 for rgba
+	//m_pointPosBuffer = new float[BufferSize];
+
+	//for (int i = 0; i < BufferSize; i++) {
+	//	m_pointPosBuffer[i] = (float)i;
+	//}
+
+	FMemory::Memcpy(DestBuffer, m_pointPosBuffer, sizeof(float)*BufferSize);
+	RHIUnlockTexture2D(Texture, 0, false);
+
+	// Cleanup
+	//if (m_pointPosBuffer)
+	//	delete m_pointPosBuffer;
+	/////////////////////////////////////////////////////////////////////
+
+
 
 	/* Get global RHI command list */
 	FRHICommandListImmediate& RHICmdList = GRHICommandList.GetImmediateCommandList();

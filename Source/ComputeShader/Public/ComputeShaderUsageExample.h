@@ -58,10 +58,16 @@ public:
 
 	FTexture2DRHIRef GetTexture() { return Texture; }
 
+	//void SetPointPosBuffer(float* buffer) { m_pointPosBuffer = buffer; }
+	float* GetPointPosBuffer() { return m_pointPosBuffer; }
+
 private:
 	bool bIsComputeShaderExecuting;
 	bool bIsUnloading;
 	bool bSave;
+
+	// buffer for the point pos
+	float* m_pointPosBuffer = nullptr;
 
 	FComputeShaderConstantParameters ConstantParameters;
 	FComputeShaderVariableParameters VariableParameters;
