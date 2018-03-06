@@ -55,7 +55,7 @@ FComputeShaderUsageExample::FComputeShaderUsageExample(float SimulationSpeed, in
 FComputeShaderUsageExample::~FComputeShaderUsageExample()
 {
 	bIsUnloading = true;
-	if (m_pointPosBuffer) delete m_pointPosBuffer; m_pointPosBuffer = nullptr;
+	if (m_pointPosBuffer) delete[] m_pointPosBuffer; m_pointPosBuffer = nullptr;
 }
 
 void FComputeShaderUsageExample::ExecuteComputeShader(float TotalElapsedTimeSeconds)
@@ -106,20 +106,11 @@ void FComputeShaderUsageExample::ExecuteComputeShaderInternal()
 	uint32 DestStride;
 	uint32* DestBuffer = (uint32*)RHILockTexture2D(Texture, 0, RLM_WriteOnly, DestStride, false);
 
-	// Test data
 	int BufferSize = Texture->GetSizeX() * Texture->GetSizeY() * 4;	//4 for rgba
-	//m_pointPosBuffer = new float[BufferSize];
-
-	//for (int i = 0; i < BufferSize; i++) {
-	//	m_pointPosBuffer[i] = (float)i;
-	//}
 
 	FMemory::Memcpy(DestBuffer, m_pointPosBuffer, sizeof(float)*BufferSize);
 	RHIUnlockTexture2D(Texture, 0, false);
 
-	// Cleanup
-	//if (m_pointPosBuffer)
-	//	delete m_pointPosBuffer;
 	/////////////////////////////////////////////////////////////////////
 
 
