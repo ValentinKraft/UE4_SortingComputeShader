@@ -53,7 +53,7 @@ void FComputeShaderDeclaration::SetSurfaces(FRHICommandList& RHICmdList, FUnorde
 		RHICmdList.SetUAVParameter(ComputeShaderRHI, OutputSurface.GetBaseIndex(), OutputSurfaceUAV);
 }
 
-void FComputeShaderDeclaration::SetPointPos(FRHICommandList& RHICmdList, FShaderResourceViewRHIRef TextureParameterSRV) {
+void FComputeShaderDeclaration::SetPointPosTexture(FRHICommandList& RHICmdList, FShaderResourceViewRHIRef TextureParameterSRV) {
 	
 	FComputeShaderRHIParamRef ComputeShaderRHI = GetComputeShader();
 

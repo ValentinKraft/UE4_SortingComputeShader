@@ -58,18 +58,13 @@ public:
 
 	FTexture2DRHIRef GetTexture() { return Texture; }
 
-	//void SetPointPosBuffer(float* buffer) { m_pointPosBuffer = buffer; }
-	float* GetPointPosBuffer() { return m_pointPosBuffer; }
-	// TMP?
-	FTexture2DRHIRef pointPosTex;
+	// Send the reference to the point position texture to the compute shader
+	void SetPointPosTextureReference(FTexture2DRHIRef tex) { PointPosTex = tex; }
 
 private:
 	bool bIsComputeShaderExecuting;
 	bool bIsUnloading;
 	bool bSave;
-
-	// buffer for the point pos
-	float* m_pointPosBuffer = nullptr;
 
 	FComputeShaderConstantParameters ConstantParameters;
 	FComputeShaderVariableParameters VariableParameters;
@@ -77,6 +72,8 @@ private:
 
 	/** Main texture */
 	FTexture2DRHIRef Texture;
+
+	FTexture2DRHIRef PointPosTex;
 
 	/** We need a UAV if we want to be able to write to the resource*/
 	FUnorderedAccessViewRHIRef TextureUAV;

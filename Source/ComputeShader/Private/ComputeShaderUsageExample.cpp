@@ -48,16 +48,11 @@ FComputeShaderUsageExample::FComputeShaderUsageExample(float SimulationSpeed, in
 	TextureUAV = RHICreateUnorderedAccessView(Texture);
 
 	TextureParameterSRV = NULL;
-
-	m_pointPosBuffer = new float[SizeX*SizeY*4];
-	for (int i = 0; i < SizeX*SizeY*4; i++)
-		m_pointPosBuffer[i] = 0.0f;
 }
 
 FComputeShaderUsageExample::~FComputeShaderUsageExample()
 {
 	bIsUnloading = true;
-	if (m_pointPosBuffer) delete[] m_pointPosBuffer; m_pointPosBuffer = nullptr;
 }
 
 void FComputeShaderUsageExample::ExecuteComputeShader(float TotalElapsedTimeSeconds)
@@ -103,30 +98,7 @@ void FComputeShaderUsageExample::ExecuteComputeShaderInternal()
 
 		return;
 	}
-
-	TextureParameterSRV = RHICreateShaderResourceView(pointPosTex, 0);
-
-
-
-
-
-	// FASTER: RHIUpdateTexture2D(Texture, 0, m_regions[0], m_Dimensions.X * 4, CurrentFrame->GetData());
-
-	///////////////// New: Fill texture with pointPositions /////////////
-	if (m_pointPosBuffer == nullptr)
-		return;
-
-	uint32 DestStride;
-	uint32* DestBuffer = (uint32*)RHILockTexture2D(Texture, 0, RLM_WriteOnly, DestStride, false);
-
-	int BufferSize = Texture->GetSizeX() * Texture->GetSizeY() * 4;	//4 for rgba
-
-	FMemory::Memcpy(DestBuffer, m_pointPosBuffer, sizeof(float)*BufferSize);
-	RHIUnlockTexture2D(Texture, 0, false);
-
-	/////////////////////////////////////////////////////////////////////
-
-
+	
 
 	/* Get global RHI command list */
 	FRHICommandListImmediate& RHICmdList = GRHICommandList.GetImmediateCommandList();
@@ -135,8 +107,11 @@ void FComputeShaderUsageExample::ExecuteComputeShaderInternal()
 	TShaderMapRef<FComputeShaderDeclaration> ComputeShader(GetGlobalShaderMap(FeatureLevel));
 	RHICmdList.SetComputeShader(ComputeShader->GetComputeShader());
 
-	// NEW
-	ComputeShader->SetPointPos(RHICmdList, TextureParameterSRV);
+	// NEW: Create resource view to pass the point position texture to the compute shader
+	if (PointPosTex) {
+		TextureParameterSRV = RHICreateShaderResourceView(PointPosTex, 0);
+		ComputeShader->SetPointPosTexture(RHICmdList, TextureParameterSRV);
+	}
 
 	/* Set inputs/outputs and dispatch compute shader */
 	ComputeShader->SetSurfaces(RHICmdList, TextureUAV);

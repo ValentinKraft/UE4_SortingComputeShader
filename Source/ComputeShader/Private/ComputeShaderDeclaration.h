@@ -72,7 +72,8 @@ public:
 
 	//This function is required to let us bind our runtime surface to the shader using an UAV.
 	void SetSurfaces(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef OutputSurfaceUAV);
-	void SetPointPos(FRHICommandList& RHICmdList, FShaderResourceViewRHIRef TextureParameterSRV);
+	//Set the point position texture
+	void SetPointPosTexture(FRHICommandList& RHICmdList, FShaderResourceViewRHIRef TextureParameterSRV);
 	//This function is required to bind our constant / uniform buffers to the shader.
 	void SetUniformBuffers(FRHICommandList& RHICmdList, FComputeShaderConstantParameters& ConstantParameters, FComputeShaderVariableParameters& VariableParameters);
 	//This is used to clean up the buffer binds after each invocation to let them be changed and used elsewhere if needed.
