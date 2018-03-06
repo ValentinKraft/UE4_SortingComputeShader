@@ -36,6 +36,7 @@ FComputeShaderDeclaration::FComputeShaderDeclaration(const ShaderMetaType::Compi
 {
 	//This call is what lets the shader system know that the surface OutputSurface is going to be available in the shader. The second parameter is the name it will be known by in the shader
 	OutputSurface.Bind(Initializer.ParameterMap, TEXT("OutputSurface"));
+	PointPosTex.Bind(Initializer.ParameterMap, TEXT("PointPosTex"));
 }
 
 void FComputeShaderDeclaration::ModifyCompilationEnvironment(EShaderPlatform Platform, FShaderCompilerEnvironment& OutEnvironment)
@@ -50,6 +51,14 @@ void FComputeShaderDeclaration::SetSurfaces(FRHICommandList& RHICmdList, FUnorde
 
 	if (OutputSurface.IsBound())
 		RHICmdList.SetUAVParameter(ComputeShaderRHI, OutputSurface.GetBaseIndex(), OutputSurfaceUAV);
+}
+
+void FComputeShaderDeclaration::SetPointPos(FRHICommandList& RHICmdList, FShaderResourceViewRHIRef TextureParameterSRV) {
+	
+	FComputeShaderRHIParamRef ComputeShaderRHI = GetComputeShader();
+
+	if (PointPosTex.IsBound())
+		RHICmdList.SetShaderResourceViewParameter(ComputeShaderRHI, PointPosTex.GetBaseIndex(), TextureParameterSRV);
 }
 
 void FComputeShaderDeclaration::SetUniformBuffers(FRHICommandList& RHICmdList, FComputeShaderConstantParameters& ConstantParameters, FComputeShaderVariableParameters& VariableParameters)
@@ -71,6 +80,8 @@ void FComputeShaderDeclaration::UnbindBuffers(FRHICommandList& RHICmdList)
 
 	if (OutputSurface.IsBound())
 		RHICmdList.SetUAVParameter(ComputeShaderRHI, OutputSurface.GetBaseIndex(), FUnorderedAccessViewRHIRef());
+	if (PointPosTex.IsBound())
+		RHICmdList.SetShaderResourceViewParameter(ComputeShaderRHI, PointPosTex.GetBaseIndex(), FShaderResourceViewRHIParamRef());
 }
 
 //This is what will instantiate the shader into the engine from the engine/Shaders folder

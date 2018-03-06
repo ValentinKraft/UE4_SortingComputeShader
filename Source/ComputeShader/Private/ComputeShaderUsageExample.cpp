@@ -47,6 +47,8 @@ FComputeShaderUsageExample::FComputeShaderUsageExample(float SimulationSpeed, in
 	Texture = RHICreateTexture2D(SizeX, SizeY, PF_A32B32G32R32F, 1, 1, TexCreate_ShaderResource | TexCreate_UAV, CreateInfo);
 	TextureUAV = RHICreateUnorderedAccessView(Texture);
 
+	TextureParameterSRV = NULL;
+
 	m_pointPosBuffer = new float[SizeX*SizeY*4];
 	for (int i = 0; i < SizeX*SizeY*4; i++)
 		m_pointPosBuffer[i] = 0.0f;
@@ -93,8 +95,19 @@ void FComputeShaderUsageExample::ExecuteComputeShaderInternal()
 			TextureUAV = NULL;
 		}
 
+		if (NULL != TextureParameterSRV)
+		{
+			TextureParameterSRV.SafeRelease();
+			TextureParameterSRV = NULL;
+		}
+
 		return;
 	}
+
+	TextureParameterSRV = RHICreateShaderResourceView(pointPosTex, 0);
+
+
+
 
 
 	// FASTER: RHIUpdateTexture2D(Texture, 0, m_regions[0], m_Dimensions.X * 4, CurrentFrame->GetData());
@@ -121,6 +134,9 @@ void FComputeShaderUsageExample::ExecuteComputeShaderInternal()
 	/** Compute shader calculation */
 	TShaderMapRef<FComputeShaderDeclaration> ComputeShader(GetGlobalShaderMap(FeatureLevel));
 	RHICmdList.SetComputeShader(ComputeShader->GetComputeShader());
+
+	// NEW
+	ComputeShader->SetPointPos(RHICmdList, TextureParameterSRV);
 
 	/* Set inputs/outputs and dispatch compute shader */
 	ComputeShader->SetSurfaces(RHICmdList, TextureUAV);

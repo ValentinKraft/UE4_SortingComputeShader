@@ -60,6 +60,8 @@ public:
 
 	//void SetPointPosBuffer(float* buffer) { m_pointPosBuffer = buffer; }
 	float* GetPointPosBuffer() { return m_pointPosBuffer; }
+	// TMP?
+	FTexture2DRHIRef pointPosTex;
 
 private:
 	bool bIsComputeShaderExecuting;
@@ -78,6 +80,9 @@ private:
 
 	/** We need a UAV if we want to be able to write to the resource*/
 	FUnorderedAccessViewRHIRef TextureUAV;
+
+	/** Since we are only reading from the pointPos texture, we do not need a UAV; an SRV is sufficient */
+	FShaderResourceViewRHIRef TextureParameterSRV;
 
 	void SaveScreenshot(FRHICommandListImmediate& RHICmdList);
 };
