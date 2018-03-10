@@ -2,22 +2,27 @@
 //When this gets chaned in the future, we could change this to #include "/Engine/Private/Common.ush".
 #include "/Engine/Private/Common.ush"
 
+////////////////////////////
+// Bitonic Sort
+// Compute Shader
+// by Valentin Kraft 
 ///
-//Bitonic Sort
-//Compute Shader
-//by ValentinKraft 
-///
-//Inspired by
-//the ComputeShaderSort11
-//example bymicrosoft. 
-/// 
+// Inspired by the ComputeShaderSort11
+// example by Microsoft. 
+///////////////////////////// 
 
 #define BITONIC_BLOCK_SIZE 512 
 #define TRANSPOSE_BLOCK_SIZE 16 
 
-RWTexture2D<float4> OutputSurface;
-Texture2D<float4> PointPosTex;
+RWTexture2D<float4> OutputSurface;      //UAV Texture
+Texture2D<float4> PointPosTex;          //Read-Only Point Position Texture
 
+// Thread group shared memory limit (DX11): 32KB
+// Only shared witin a thread group!
+groupshared unsigned int shared_data[BITONIC_BLOCK_SIZE];
+
+// In order to make full use of the resources of the GPU, there should be at least as many thread groups as there are multiprocessors on the GPU, and ideally two ormore #ToDo: Make dynamic
+// Max number of threads in a group (DX11): 1024
 [numthreads(32, 32, 1)]
 void MainComputeShader(uint3 ThreadId : SV_DispatchThreadID)
 {
@@ -26,6 +31,8 @@ void MainComputeShader(uint3 ThreadId : SV_DispatchThreadID)
 	OutputSurface.GetDimensions(sizeX, sizeY);
 
     float4 pointPos = PointPosTex.Load(int3(ThreadId.xy, 0));
+
+    GroupMemoryBarrierWithGroupSync();
 
     OutputSurface[ThreadId.xy] = pointPos;
 }
