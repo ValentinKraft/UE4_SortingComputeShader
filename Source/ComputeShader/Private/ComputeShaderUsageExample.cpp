@@ -24,7 +24,7 @@
 
 #include "ComputeShaderPrivatePCH.h"
 
-#define NUM_THREADS_PER_GROUP_DIMENSION 32 //This has to be the same as in the compute shader's spec [X, X, 1]
+#define NUM_THREADS_PER_GROUP_DIMENSION 1 //This has to be the same as in the compute shader's spec [X, X, 1]
 
 FComputeShaderUsageExample::FComputeShaderUsageExample(float SimulationSpeed, int32 SizeX, int32 SizeY, ERHIFeatureLevel::Type ShaderFeatureLevel)
 {

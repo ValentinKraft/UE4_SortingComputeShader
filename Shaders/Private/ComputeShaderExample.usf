@@ -11,28 +11,63 @@
 // example by Microsoft. 
 ///////////////////////////// 
 
-#define BITONIC_BLOCK_SIZE 512 
+#define BITONIC_BLOCK_SIZE 256 
 #define TRANSPOSE_BLOCK_SIZE 16 
+
+//--------------------------------------------------------------------------------------
+// Constant Buffers
+//--------------------------------------------------------------------------------------
+//cbuffer CB : register(b0)
+//{
+//    unsigned int g_iLevel;
+//    unsigned int g_iLevelMask;
+//    unsigned int g_iWidth;
+//    unsigned int g_iHeight;
+//};
 
 RWTexture2D<float4> OutputSurface;      //UAV Texture
 Texture2D<float4> PointPosTex;          //Read-Only Point Position Texture
 
 // Thread group shared memory limit (DX11): 32KB
 // Only shared witin a thread group!
-groupshared unsigned int shared_data[BITONIC_BLOCK_SIZE];
+groupshared float shared_data[BITONIC_BLOCK_SIZE];
 
 // In order to make full use of the resources of the GPU, there should be at least as many thread groups as there are multiprocessors on the GPU, and ideally two ormore #ToDo: Make dynamic
 // Max number of threads in a group (DX11): 1024
-[numthreads(32, 32, 1)]
-void MainComputeShader(uint3 ThreadId : SV_DispatchThreadID)
+[numthreads(BITONIC_BLOCK_SIZE, 1, 1)]
+void MainComputeShader( uint3 Gid : SV_GroupID,
+                        uint3 DTid : SV_DispatchThreadID,
+                        uint3 GTid : SV_GroupThreadID,
+                        uint GI : SV_GroupIndex)
 {
 	//Set up some variables we are going to need
 	float sizeX, sizeY;
 	OutputSurface.GetDimensions(sizeX, sizeY);
+    float4 camPos = float4(0.0, 0.0, 0.0, 0.0); // #Temp
+    float4 pointPos = PointPosTex.Load(int3(DTid.xy, 0));
 
-    float4 pointPos = PointPosTex.Load(int3(ThreadId.xy, 0));
 
+    // Compute distance and store in shared data
+    shared_data[GI] = pointPos;
     GroupMemoryBarrierWithGroupSync();
 
-    OutputSurface[ThreadId.xy] = pointPos;
+    //if (shared_data[GI]>=100.0)
+    //    OutputSurface[DTid.xy] = pointPos;
+    //else
+    //    OutputSurface[DTid.xy] = camPos;
+
+    // Sort the shared data
+    unsigned int g_iLevel = 2;
+    unsigned int g_iLevelMask = 2;
+
+    //for (unsigned int j = g_iLevel >> 1; j > 0; j >>= 1)
+    //{
+    //    float result = ((shared_data[GI & ~j] <= shared_data[GI | j]) == (bool) (g_iLevelMask & DTid.x)) ? shared_data[GI ^ j] : shared_data[GI];
+    //    GroupMemoryBarrierWithGroupSync();
+    //    shared_data[GI] = result;
+    //    GroupMemoryBarrierWithGroupSync();
+    //}
+
+    OutputSurface[DTid.xy] = (float) GI/256;
 }
+
