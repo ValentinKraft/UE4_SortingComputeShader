@@ -35,10 +35,10 @@ groupshared float shared_data[BITONIC_BLOCK_SIZE];
 // In order to make full use of the resources of the GPU, there should be at least as many thread groups as there are multiprocessors on the GPU, and ideally two ormore #ToDo: Make dynamic
 // Max number of threads in a group (DX11): 1024
 [numthreads(BITONIC_BLOCK_SIZE, 1, 1)]
-void MainComputeShader( uint3 Gid : SV_GroupID,
-                        uint3 DTid : SV_DispatchThreadID,
-                        uint3 GTid : SV_GroupThreadID,
-                        uint GI : SV_GroupIndex)
+void MainComputeShader(uint3 Gid : SV_GroupID,              //atm: 0, 0...256, 0 in rows (Y)    --> current group index (dispatched by c++)
+                        uint3 DTid : SV_DispatchThreadID,   //atm: 0...256 in rows & columns (XY)   --> "global" thread id
+                        uint3 GTid : SV_GroupThreadID,      //atm: 0...256, 0,0 in columns (X)      --> current threadId in group / "local" threadId
+                        uint GI : SV_GroupIndex)            //atm: 0...256 in columns (X) --> "flattened" index of a thread within a group
 {
 	//Set up some variables we are going to need
 	float sizeX, sizeY;
@@ -48,17 +48,27 @@ void MainComputeShader( uint3 Gid : SV_GroupID,
 
 
     // Compute distance and store in shared data
-    shared_data[GI] = pointPos;
+    //shared_data[GI] = pointPos;
     GroupMemoryBarrierWithGroupSync();
 
-    //if (shared_data[GI]>=100.0)
-    //    OutputSurface[DTid.xy] = pointPos;
-    //else
-    //    OutputSurface[DTid.xy] = camPos;
-
     // Sort the shared data
-    unsigned int g_iLevel = 2;
-    unsigned int g_iLevelMask = 2;
+    //unsigned int g_iLevel = 2;
+    //unsigned int g_iLevelMask = 2;
+
+    uint3 pDTid = uint3(DTid.x, DTid.y + 128, 0);       //partner id
+    float4 partnerPointPos = PointPosTex.Load(int3(pDTid));
+    GroupMemoryBarrierWithGroupSync();
+
+    if (distance(partnerPointPos, camPos) > distance(pointPos, camPos))
+    {
+        OutputSurface[DTid.xy] = pointPos;
+        OutputSurface[pDTid.xy] = partnerPointPos;
+    }
+    else
+    {
+        OutputSurface[DTid.xy] = partnerPointPos;
+        OutputSurface[pDTid.xy] = pointPos;
+    }
 
     //for (unsigned int j = g_iLevel >> 1; j > 0; j >>= 1)
     //{
@@ -68,6 +78,7 @@ void MainComputeShader( uint3 Gid : SV_GroupID,
     //    GroupMemoryBarrierWithGroupSync();
     //}
 
-    OutputSurface[DTid.xy] = (float) GI/256;
+    //OutputSurface[DTid.xy] = float4((float3) Gid, 0) / 256;
+
 }
 
