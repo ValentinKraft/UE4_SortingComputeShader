@@ -24,7 +24,7 @@
 
 #include "ComputeShaderPrivatePCH.h"
 
-#define NUM_THREADS_PER_GROUP_DIMENSION 2 //This has to be the same as in the compute shader's spec [X, X, 1]
+#define NUM_THREADS_PER_GROUP_DIMENSION 8 //This has to be the same as in the compute shader's spec [X, X, 1]
 
 FComputeShaderUsageExample::FComputeShaderUsageExample(float SimulationSpeed, int32 SizeX, int32 SizeY, ERHIFeatureLevel::Type ShaderFeatureLevel)
 {
@@ -116,7 +116,7 @@ void FComputeShaderUsageExample::ExecuteComputeShaderInternal()
 	/* Set inputs/outputs and dispatch compute shader */
 	ComputeShader->SetSurfaces(RHICmdList, TextureUAV);
 	ComputeShader->SetUniformBuffers(RHICmdList, ConstantParameters, VariableParameters);
-	DispatchComputeShader(RHICmdList, *ComputeShader, Texture->GetSizeX() / NUM_THREADS_PER_GROUP_DIMENSION, Texture->GetSizeY() / NUM_THREADS_PER_GROUP_DIMENSION, 1);
+	DispatchComputeShader(RHICmdList, *ComputeShader, 8, 8, 1);
 	ComputeShader->UnbindBuffers(RHICmdList);
 
 	if (bSave) //Save to disk if we have a save request!
