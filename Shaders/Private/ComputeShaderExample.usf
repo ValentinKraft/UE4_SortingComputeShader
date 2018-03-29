@@ -29,12 +29,12 @@ RWTexture2D<float4> OutputSurface;      //UAV Texture
 Texture2D<float4> PointPosTex;          //Read-Only Point Position Texture
 
 // Thread group shared memory limit (DX11): 32KB --> 2048 float4 values --> 32 thread groups optimum --> 1024 Threads optimum (?)
-// Only shared witin a thread group!
-groupshared float shared_data[BITONIC_BLOCK_SIZE];
+// Only shared within a thread group!
+groupshared float4 shared_data[2048];
 
 // In order to make full use of the resources of the GPU, there should be at least as many thread groups as there are multiprocessors on the GPU, and ideally two or more #ToDo: Make dynamic
 // Max number of threads in a group (DX11): 1024
-[numthreads(32, 16, 1)]
+[numthreads(32, 32, 1)]
 void MainComputeShader(uint3 Gid : SV_GroupID,              //atm: -, 0...256, - in rows (Y)        --> current group index (dispatched by c++)
                         uint3 DTid : SV_DispatchThreadID,   //atm: 0...256 in rows & columns (XY)   --> "global" thread id
                         uint3 GTid : SV_GroupThreadID,      //atm: 0...256, -,- in columns (X)      --> current threadId in group / "local" threadId
@@ -48,41 +48,47 @@ void MainComputeShader(uint3 Gid : SV_GroupID,              //atm: -, 0...256, -
 
 
     // Compute distance and store in shared data
-    //shared_data[GI] = pointPos;
+    shared_data[GI] = pointPos;
     GroupMemoryBarrierWithGroupSync();
 
     // Sort the shared data
-    //unsigned int g_iLevel = 2;
-    //unsigned int g_iLevelMask = 2;
+    unsigned int g_iLevel = 512;
+    unsigned int g_iLevelMask = 256;
 
-    uint3 pDTid = uint3(DTid.x, DTid.y + 64, 0);       //partner id
-    float4 partnerPointPos = PointPosTex.Load(int3(pDTid));
-    GroupMemoryBarrierWithGroupSync();
 
-    if (distance(partnerPointPos, camPos) > distance(pointPos, camPos))
-    {
-        OutputSurface[DTid.xy] = pointPos;
-        OutputSurface[pDTid.xy] = partnerPointPos;
-    }
-    else
-    {
-        OutputSurface[DTid.xy] = partnerPointPos;
-        OutputSurface[pDTid.xy] = pointPos;
-    }
 
-    // Now each thread must pick the min or max of the two elements it is comparing. The thread cannot compare and swap both elements because that would require random access writes.
-    //for (unsigned int j = g_iLevel >> 1; j > 0; j >>= 1)
+    //uint3 pDTid = uint3(DTid.x, DTid.y + 64, 0);       //partner id
+    //float4 partnerPointPos = PointPosTex.Load(int3(pDTid));
+    //GroupMemoryBarrierWithGroupSync();
+
+    //if (distance(partnerPointPos, camPos) > distance(pointPos, camPos))
     //{
-    //    float result = ((shared_data[GI & ~j] <= shared_data[GI | j]) == (bool) (g_iLevelMask & DTid.x)) ? shared_data[GI ^ j] : shared_data[GI];
-    //    GroupMemoryBarrierWithGroupSync();
-    //    shared_data[GI] = result;
-    //    GroupMemoryBarrierWithGroupSync();
+    //    OutputSurface[DTid.xy] = pointPos;
+    //    OutputSurface[pDTid.xy] = partnerPointPos;
+    //}
+    //else
+    //{
+    //    OutputSurface[DTid.xy] = partnerPointPos;
+    //    OutputSurface[pDTid.xy] = pointPos;
     //}
 
+
+
+
+    // Now each thread must pick the min or max of the two elements it is comparing. The thread cannot compare and swap both elements because that would require random access writes.
+    for (unsigned int j = g_iLevel >> 1; j > 0; j >>= 1)
+    {
+        float4 result = ((length(shared_data[GI & ~j]) <= length(shared_data[GI | j])) == (bool) (g_iLevelMask & DTid.x)) ? shared_data[GI ^ j] : shared_data[GI];
+        GroupMemoryBarrierWithGroupSync();
+        shared_data[GI] = result;
+        GroupMemoryBarrierWithGroupSync();
+    }
+
     // Display all threads
-    //OutputSurface[DTid.xy] = float4((float3) GTid, 0) / 32;
+    OutputSurface[DTid.xy] = float4((float3) GI, 0) / 32;
     
     //OutputSurface[DTid.xy] = pointPos;
+    OutputSurface[DTid.xy] = shared_data[GI];
 
 }
 
