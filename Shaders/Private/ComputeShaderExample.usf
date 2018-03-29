@@ -61,17 +61,16 @@ void MainComputeShader(uint3 Gid : SV_GroupID,              //atm: -, 0...256, -
 	//Set up some variables we are going to need
 	float sizeX, sizeY;
 	OutputSurface.GetDimensions(sizeX, sizeY);
-    float4 camPos = float4(0.0, 0.0, 0.0, 0.0); // #Temp
+    const float4 camPos = float4(0.0, 0.0, 0.0, 0.0); // #Temp
     float4 pointPos = PointPosTex.Load(int3(DTid.xy, 0));
 
 
-    const float4 LumVector = float4(0.2125f, 0.7154f, 0.0721f, 0.0f);
 
 	// index out of structured buffer input
     //uint idx = DTid.x + DTid.y * c_width;
 
 	// populate the o array with the uint versions of this block
-    o[GI] = uint(dot(pointPos, LumVector) * 0xFFFFFFFF);
+    o[GI] = uint(distance(pointPos, camPos) * 0xFFFFFFFF);
 
 
 	// loop through each bit
@@ -145,7 +144,7 @@ void MainComputeShader(uint3 Gid : SV_GroupID,              //atm: -, 0...256, -
     OutputSurface[DTid.xy] = float(o[GI]) / 0xFFFFFFFF;
     
     // Visualise thread layout
-    //OutputSurface[DTid.xy] = float4((float3) GTid, 0) / 32;
+    OutputSurface[DTid.xy] = float(o[GI]) / 0xFFFFFFFF + float4((float3) GTid, 0) / 256;
 
 
 
