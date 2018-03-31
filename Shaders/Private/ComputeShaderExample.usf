@@ -25,22 +25,18 @@
 //    unsigned int g_iHeight;
 //};
 
-RWTexture2D<float4> OutputSurface;      //UAV Texture
-Texture2D<float4> PointPosTex;          //Read-Only Point Position Texture
-
-// Thread group shared memory limit (DX11): 32KB --> 2048 float4 values --> 32 thread groups optimum --> 1024 Threads optimum (?)
-// Only shared within a thread group!
-
-bool getBit(uint i, uint n)
-{
-    return ((n >> i) & 1) == 1;
-}
-
 #define THREADX 32
 #define THREADY 32
 #define c_width 256
 
 #define GROUP_THREADS THREADX * THREADY
+
+RWTexture2D<float4> OutputSurface;      //UAV Texture
+Texture2D<float4> PointPosTex;          //Read-Only Point Position Texture
+
+
+// Thread group shared memory limit (DX11): 32KB --> 2048*4 uint values --> ??? thread groups optimum --> ??? Threads optimum (?)
+// Only shared within a thread group!
 groupshared uint o[GROUP_THREADS];
 groupshared uint e[GROUP_THREADS];
 groupshared uint f[GROUP_THREADS];
@@ -49,8 +45,13 @@ groupshared uint d[GROUP_THREADS];
 groupshared uint totalFalses;
 
 
+bool getBit(uint i, uint n)
+{
+    return ((n >> i) & 1) == 1;
+}
 
 // In order to make full use of the resources of the GPU, there should be at least as many thread groups as there are multiprocessors on the GPU, and ideally two or more #ToDo: Make dynamic
+// Thread groups should be multiples of 32 threads in size
 // Max number of threads in a group (DX11): 1024
 [numthreads(THREADX, THREADY, 1)]
 void MainComputeShader(uint3 Gid : SV_GroupID,              //atm: -, 0...256, - in rows (Y)        --> current group index (dispatched by c++)
@@ -70,12 +71,14 @@ void MainComputeShader(uint3 Gid : SV_GroupID,              //atm: -, 0...256, -
     //uint idx = DTid.x + DTid.y * c_width;
 
 	// populate the o array with the uint versions of this block
-    o[GI] = uint(distance(pointPos, camPos) * 0xFFFFFFFF);
+    //o[GI] = uint(distance(pointPos, camPos) * 0xFFFFFFFF);
+    // #Temp: use position lengths, because they're easier to visualise
+    o[GI] = uint(length(pointPos) * 0xFFFFFFFF);
 
 
 	// loop through each bit
-	[unroll(64)]                    // Wert?!
-    for (int n = 0; n < 64; n++)    // Wert?!
+	[unroll(32)]                    // Wert?!
+    for (int n = 0; n < 32; n++)    // Wert?!
     {
 
 		// e is 1 where the nth bit is 0.
