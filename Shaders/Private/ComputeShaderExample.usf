@@ -11,8 +11,8 @@
 // example by Microsoft. 
 ///////////////////////////// 
 
-#define BITONIC_BLOCK_SIZE 32 
-#define TRANSPOSE_BLOCK_SIZE 16 
+#define BITONIC_BLOCK_SIZE 512
+#define TRANSPOSE_BLOCK_SIZE 16
 
 //--------------------------------------------------------------------------------------
 // Constant Buffers
@@ -34,7 +34,7 @@ groupshared float4 shared_data[2048];
 
 // In order to make full use of the resources of the GPU, there should be at least as many thread groups as there are multiprocessors on the GPU, and ideally two or more #ToDo: Make dynamic
 // Max number of threads in a group (DX11): 1024
-[numthreads(32, 32, 1)]
+[numthreads(BITONIC_BLOCK_SIZE, 1, 1)]
 void MainComputeShader(uint3 Gid : SV_GroupID,             //atm: -, 0...256, - in rows (Y)        --> current group index (dispatched by c++)
                        uint3 DTid : SV_DispatchThreadID,   //atm: 0...256 in rows & columns (XY)   --> "global" thread id
                        uint3 GTid : SV_GroupThreadID,      //atm: 0...256, -,- in columns (X)      --> current threadId in group / "local" threadId
@@ -88,11 +88,20 @@ void MainComputeShader(uint3 Gid : SV_GroupID,             //atm: -, 0...256, - 
 
 }
 
+//--------------------------------------------------------------------------------------
+// Matrix Transpose Compute Shader
+//--------------------------------------------------------------------------------------
+groupshared unsigned int transpose_shared_data[TRANSPOSE_BLOCK_SIZE * TRANSPOSE_BLOCK_SIZE];
 
-[numthreads(32, 32, 1)]
+[numthreads(TRANSPOSE_BLOCK_SIZE, TRANSPOSE_BLOCK_SIZE, 1)]
 void TransposeMatrix(uint3 Gid : SV_GroupID,
                      uint3 DTid : SV_DispatchThreadID,
                      uint3 GTid : SV_GroupThreadID,
                      uint GI : SV_GroupIndex)
 {
+    float4 pointPos = PointPosTex.Load(int3(DTid.xy, 0));
+    transpose_shared_data[GI] = pointPos;
+    GroupMemoryBarrierWithGroupSync();
+    uint2 XY = DTid.yx - GTid.yx + GTid.xy;
+    OutputSurface[DTid.xy] = transpose_shared_data[GTid.x * TRANSPOSE_BLOCK_SIZE + GTid.y];
 }
