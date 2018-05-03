@@ -107,6 +107,9 @@ void FComputeShaderUsageExample::ExecuteComputeShaderInternal()
 	TShaderMapRef<FComputeShaderDeclaration> ComputeShader(GetGlobalShaderMap(FeatureLevel));
 	RHICmdList.SetComputeShader(ComputeShader->GetComputeShader());
 
+	// Transpose CS test
+	TShaderMapRef<FComputeShaderTransposeDeclaration> ComputeShaderTranspose(GetGlobalShaderMap(FeatureLevel));
+
 	// NEW: Create resource view to pass the point position texture to the compute shader
 	if (PointPosTex) {
 		TextureParameterSRV = RHICreateShaderResourceView(PointPosTex, 0);

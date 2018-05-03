@@ -84,9 +84,65 @@ void FComputeShaderDeclaration::UnbindBuffers(FRHICommandList& RHICmdList)
 		RHICmdList.SetShaderResourceViewParameter(ComputeShaderRHI, PointPosTex.GetBaseIndex(), FShaderResourceViewRHIParamRef());
 }
 
+/////////////////////////////////////////////////////////////////////////////
+
+FComputeShaderTransposeDeclaration::FComputeShaderTransposeDeclaration(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
+: FGlobalShader(Initializer)
+{
+	//This call is what lets the shader system know that the surface OutputSurface is going to be available in the shader. The second parameter is the name it will be known by in the shader
+	OutputSurface.Bind(Initializer.ParameterMap, TEXT("OutputSurface"));
+	PointPosTex.Bind(Initializer.ParameterMap, TEXT("PointPosTex"));
+}
+
+void FComputeShaderTransposeDeclaration::ModifyCompilationEnvironment(EShaderPlatform Platform, FShaderCompilerEnvironment& OutEnvironment)
+{
+	FGlobalShader::ModifyCompilationEnvironment(Platform, OutEnvironment);
+	OutEnvironment.CompilerFlags.Add(CFLAG_StandardOptimization);
+}
+
+void FComputeShaderTransposeDeclaration::SetSurfaces(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef OutputSurfaceUAV)
+{
+	FComputeShaderRHIParamRef ComputeShaderRHI = GetComputeShader();
+
+	if (OutputSurface.IsBound())
+		RHICmdList.SetUAVParameter(ComputeShaderRHI, OutputSurface.GetBaseIndex(), OutputSurfaceUAV);
+}
+
+void FComputeShaderTransposeDeclaration::SetPointPosTexture(FRHICommandList& RHICmdList, FShaderResourceViewRHIRef TextureParameterSRV) {
+	
+	FComputeShaderRHIParamRef ComputeShaderRHI = GetComputeShader();
+
+	if (PointPosTex.IsBound())
+		RHICmdList.SetShaderResourceViewParameter(ComputeShaderRHI, PointPosTex.GetBaseIndex(), TextureParameterSRV);
+}
+
+void FComputeShaderTransposeDeclaration::SetUniformBuffers(FRHICommandList& RHICmdList, FComputeShaderConstantParameters& ConstantParameters, FComputeShaderVariableParameters& VariableParameters)
+{
+	FComputeShaderConstantParametersRef ConstantParametersBuffer;
+	FComputeShaderVariableParametersRef VariableParametersBuffer;
+
+	ConstantParametersBuffer = FComputeShaderConstantParametersRef::CreateUniformBufferImmediate(ConstantParameters, UniformBuffer_SingleDraw);
+	VariableParametersBuffer = FComputeShaderVariableParametersRef::CreateUniformBufferImmediate(VariableParameters, UniformBuffer_SingleDraw);
+
+	SetUniformBufferParameter(RHICmdList, GetComputeShader(), GetUniformBufferParameter<FComputeShaderConstantParameters>(), ConstantParametersBuffer);
+	SetUniformBufferParameter(RHICmdList, GetComputeShader(), GetUniformBufferParameter<FComputeShaderVariableParameters>(), VariableParametersBuffer);
+}
+
+/* Unbinds buffers that will be used elsewhere */
+void FComputeShaderTransposeDeclaration::UnbindBuffers(FRHICommandList& RHICmdList)
+{
+	FComputeShaderRHIParamRef ComputeShaderRHI = GetComputeShader();
+
+	if (OutputSurface.IsBound())
+		RHICmdList.SetUAVParameter(ComputeShaderRHI, OutputSurface.GetBaseIndex(), FUnorderedAccessViewRHIRef());
+	if (PointPosTex.IsBound())
+		RHICmdList.SetShaderResourceViewParameter(ComputeShaderRHI, PointPosTex.GetBaseIndex(), FShaderResourceViewRHIParamRef());
+}
+
 //This is what will instantiate the shader into the engine from the engine/Shaders folder
 //                      ShaderType                    ShaderFileName                Shader function name       Type
 IMPLEMENT_SHADER_TYPE(, FComputeShaderDeclaration, TEXT("/Plugin/ComputeShader/Private/ComputeShaderExample.usf"), TEXT("MainComputeShader"), SF_Compute);
+IMPLEMENT_SHADER_TYPE(, FComputeShaderTransposeDeclaration, TEXT("/Plugin/ComputeShader/Private/ComputeShaderExample.usf"), TEXT("TransposeMatrix"), SF_Compute);
 
 //This is required for the plugin to build :)
 IMPLEMENT_MODULE(FDefaultModuleImpl, ComputeShader)
