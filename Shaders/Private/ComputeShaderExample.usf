@@ -11,8 +11,8 @@
 // example by Microsoft. 
 ///////////////////////////// 
 
-#define BITONIC_BLOCK_SIZE 512
-#define TRANSPOSE_BLOCK_SIZE 16
+#define BITONIC_BLOCK_SIZE 256
+#define TRANSPOSE_BLOCK_SIZE 8
 
 //--------------------------------------------------------------------------------------
 // Constant Buffers
@@ -30,7 +30,7 @@ Texture2D<float4> PointPosTex;          //Read-Only Point Position Texture
 
 // Thread group shared memory limit (DX11): 32KB --> 2048 float4 values --> 32 thread groups optimum --> 1024 Threads optimum (?)
 // Only shared within a thread group!
-groupshared float4 shared_data[2048];
+groupshared float4 shared_data[BITONIC_BLOCK_SIZE];
 
 // In order to make full use of the resources of the GPU, there should be at least as many thread groups as there are multiprocessors on the GPU, and ideally two or more #ToDo: Make dynamic
 // Max number of threads in a group (DX11): 1024
@@ -81,10 +81,11 @@ void MainComputeShader(uint3 Gid : SV_GroupID,             //atm: -, 0...256, - 
     }
 
     // Display all threads
-    OutputSurface[DTid.xy] = float4((float3) GI, 0) / 32;
+    //OutputSurface[DTid.xy] = float4(float3(DTid.xy, 0), 0)/256.0f;
     
     //OutputSurface[DTid.xy] = pointPos;
     OutputSurface[DTid.xy] = shared_data[GI];
+    //OutputSurface[DTid.xy] = float4(0.0f, 1.0f, 0.0f, 1.0f);
 
 }
 
@@ -102,6 +103,6 @@ void TransposeMatrix(uint3 Gid : SV_GroupID,
     float4 pointPos = PointPosTex.Load(int3(DTid.xy, 0));
     transpose_shared_data[GI] = pointPos;
     GroupMemoryBarrierWithGroupSync();
-    uint2 XY = DTid.yx - GTid.yx + GTid.xy;
     OutputSurface[DTid.xy] = transpose_shared_data[GTid.x * TRANSPOSE_BLOCK_SIZE + GTid.y];
+    //OutputSurface[DTid.xy] = float4(1.0f, 0.0f, 0.0f, 1.0f);
 }
