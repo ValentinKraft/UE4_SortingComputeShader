@@ -72,14 +72,17 @@ private:
 
 	/** Main texture */
 	FTexture2DRHIRef Texture;
+	FStructuredBufferRHIParamRef Buffer;
 
 	FTexture2DRHIRef PointPosTex;
 
 	/** We need a UAV if we want to be able to write to the resource*/
 	FUnorderedAccessViewRHIRef TextureUAV;
+	FUnorderedAccessViewRHIRef BufferUAV;
 
 	/** Since we are only reading from the pointPos texture, we do not need a UAV; an SRV is sufficient */
 	FShaderResourceViewRHIRef TextureParameterSRV;
+	FShaderResourceViewRHIRef BufferSRV;
 
 	void SaveScreenshot(FRHICommandListImmediate& RHICmdList);
 };

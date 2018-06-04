@@ -52,8 +52,11 @@ FComputeShaderUsageExample::FComputeShaderUsageExample(float SimulationSpeed, in
 	FRHIResourceCreateInfo CreateInfo;
 	Texture = RHICreateTexture2D(SizeX, SizeY, PF_A32B32G32R32F, 1, 1, TexCreate_ShaderResource | TexCreate_UAV, CreateInfo);
 	TextureUAV = RHICreateUnorderedAccessView(Texture);
-
 	TextureParameterSRV = NULL;
+
+	Buffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
+	//BufferUAV = RHICreateUnorderedAccessView(Buffer, true, true);
+	BufferSRV = NULL;
 }
 
 FComputeShaderUsageExample::~FComputeShaderUsageExample()
@@ -118,6 +121,8 @@ void FComputeShaderUsageExample::ExecuteComputeShaderInternal()
 	// NEW: Create resource view to pass the point position texture to the compute shader
 	if (PointPosTex) {
 		TextureParameterSRV = RHICreateShaderResourceView(PointPosTex, 0);
+		//BufferSRV = RHICreateShaderResourceView(Buffer);
+
 		ComputeShader->SetPointPosTexture(RHICmdList, TextureParameterSRV);
 		ComputeShaderTranspose->SetPointPosTexture(RHICmdList, TextureParameterSRV);
 	}
@@ -128,55 +133,58 @@ void FComputeShaderUsageExample::ExecuteComputeShaderInternal()
 	for (UINT level = 2; level <= BITONIC_BLOCK_SIZE; level = level * 2)
 	{
 		// Set constants
-		ConstantParameters.g_iLevel = level;
-		ConstantParameters.g_iLevelMask = level;
-		ConstantParameters.g_iHeight = MATRIX_HEIGHT;
-		ConstantParameters.g_iWidth = MATRIX_WIDTH;
+		VariableParameters.g_iLevel = level;
+		VariableParameters.g_iLevelMask = level;
+		VariableParameters.g_iHeight = MATRIX_HEIGHT;
+		VariableParameters.g_iWidth = MATRIX_WIDTH;
 		ComputeShader->SetUniformBuffers(RHICmdList, ConstantParameters, VariableParameters);
 
 		// Sort the row data
 		ComputeShader->SetSurfaces(RHICmdList, TextureUAV);
 		RHICmdList.SetComputeShader(ComputeShader->GetComputeShader());
-		DispatchComputeShader(RHICmdList, *ComputeShader, 1, NUM_ELEMENTS / BITONIC_BLOCK_SIZE, 1);
+		DispatchComputeShader(RHICmdList, *ComputeShader, 1, NUM_ELEMENTS / BITONIC_BLOCK_SIZE / 2, 1);
 	}
 
 	// Then sort the rows and columns for the levels > than the block size
 	// Transpose. Sort the Columns. Transpose. Sort the Rows.
-	for (UINT level = (BITONIC_BLOCK_SIZE * 2); level <= NUM_ELEMENTS; level = level * 2)
-	{
-		ConstantParameters.g_iLevel = level / BITONIC_BLOCK_SIZE;
-		ConstantParameters.g_iLevelMask = (level & ~NUM_ELEMENTS) / BITONIC_BLOCK_SIZE;
-		ConstantParameters.g_iHeight = MATRIX_HEIGHT;
-		ConstantParameters.g_iWidth = MATRIX_WIDTH;
-		ComputeShaderTranspose->SetUniformBuffers(RHICmdList, ConstantParameters, VariableParameters);
-		ComputeShaderTranspose->SetUniformBuffers(RHICmdList, ConstantParameters, VariableParameters);
+	//for (UINT level = (BITONIC_BLOCK_SIZE * 2); level <= NUM_ELEMENTS; level = level * 2)
+	//{
+	//	VariableParameters.g_iLevel = level / BITONIC_BLOCK_SIZE;
+	//	VariableParameters.g_iLevelMask = (level & ~NUM_ELEMENTS) / BITONIC_BLOCK_SIZE;
+	//	VariableParameters.g_iHeight = MATRIX_HEIGHT;
+	//	VariableParameters.g_iWidth = MATRIX_WIDTH;
+	//	ComputeShaderTranspose->SetUniformBuffers(RHICmdList, ConstantParameters, VariableParameters);
+	//	ComputeShaderTranspose->SetUniformBuffers(RHICmdList, ConstantParameters, VariableParameters);
 
-		// Transpose the data from buffer 1 into buffer 2
-		ComputeShaderTranspose->SetSurfaces(RHICmdList, TextureUAV);
-		RHICmdList.SetComputeShader(ComputeShaderTranspose->GetComputeShader());
-		DispatchComputeShader(RHICmdList, *ComputeShaderTranspose, 1, MATRIX_HEIGHT / TRANSPOSE_BLOCK_SIZE, MATRIX_WIDTH / TRANSPOSE_BLOCK_SIZE);
+	//	// Transpose the data from buffer 1 into buffer 2
+	//	ComputeShaderTranspose->SetSurfaces(RHICmdList, TextureUAV);
+	//	RHICmdList.SetComputeShader(ComputeShaderTranspose->GetComputeShader());
+	//	DispatchComputeShader(RHICmdList, *ComputeShaderTranspose, 1, MATRIX_HEIGHT / TRANSPOSE_BLOCK_SIZE, MATRIX_WIDTH / TRANSPOSE_BLOCK_SIZE);
 
-		// Sort the transposed column data
-		RHICmdList.SetComputeShader(ComputeShader->GetComputeShader());
-		DispatchComputeShader(RHICmdList, *ComputeShader, 1, NUM_ELEMENTS / BITONIC_BLOCK_SIZE, 1);
+	//	// Sort the transposed column data
+	//	ComputeShader->SetUniformBuffers(RHICmdList, ConstantParameters, VariableParameters);
+	//	ComputeShader->SetSurfaces(RHICmdList, TextureUAV);
+	//	RHICmdList.SetComputeShader(ComputeShader->GetComputeShader());
+	//	DispatchComputeShader(RHICmdList, *ComputeShader, 1, NUM_ELEMENTS / BITONIC_BLOCK_SIZE, 1);
 
-		// Set constants
-		ConstantParameters.g_iLevel = BITONIC_BLOCK_SIZE;
-		ConstantParameters.g_iLevelMask = level;
-		ConstantParameters.g_iHeight = MATRIX_HEIGHT;
-		ConstantParameters.g_iWidth = MATRIX_WIDTH;
-		ComputeShaderTranspose->SetUniformBuffers(RHICmdList, ConstantParameters, VariableParameters);
-		ComputeShaderTranspose->SetUniformBuffers(RHICmdList, ConstantParameters, VariableParameters);
+	//	// Set constants
+	//	VariableParameters.g_iLevel = BITONIC_BLOCK_SIZE;
+	//	VariableParameters.g_iLevelMask = level;
+	//	VariableParameters.g_iHeight = MATRIX_HEIGHT;
+	//	VariableParameters.g_iWidth = MATRIX_WIDTH;
+	//	ComputeShaderTranspose->SetUniformBuffers(RHICmdList, ConstantParameters, VariableParameters);
 
-		// Transpose the data from buffer 2 back into buffer 1
-		ComputeShaderTranspose->SetSurfaces(RHICmdList, TextureUAV);
-		RHICmdList.SetComputeShader(ComputeShaderTranspose->GetComputeShader());
-		DispatchComputeShader(RHICmdList, *ComputeShaderTranspose, 1, MATRIX_HEIGHT / TRANSPOSE_BLOCK_SIZE, MATRIX_WIDTH / TRANSPOSE_BLOCK_SIZE);
+	//	// Transpose the data from buffer 2 back into buffer 1
+	//	ComputeShaderTranspose->SetSurfaces(RHICmdList, TextureUAV);
+	//	RHICmdList.SetComputeShader(ComputeShaderTranspose->GetComputeShader());
+	//	DispatchComputeShader(RHICmdList, *ComputeShaderTranspose, 1, MATRIX_HEIGHT / TRANSPOSE_BLOCK_SIZE, MATRIX_WIDTH / TRANSPOSE_BLOCK_SIZE);
 
-		// Sort the row data
-		RHICmdList.SetComputeShader(ComputeShader->GetComputeShader());
-		DispatchComputeShader(RHICmdList, *ComputeShader, 1, NUM_ELEMENTS / BITONIC_BLOCK_SIZE, 1);
-	}
+	//	// Sort the row data
+	//	ComputeShader->SetUniformBuffers(RHICmdList, ConstantParameters, VariableParameters);
+	//	ComputeShader->SetSurfaces(RHICmdList, TextureUAV);
+	//	RHICmdList.SetComputeShader(ComputeShader->GetComputeShader());
+	//	DispatchComputeShader(RHICmdList, *ComputeShader, 1, NUM_ELEMENTS / BITONIC_BLOCK_SIZE, 1);
+	//}
 	ComputeShader->UnbindBuffers(RHICmdList);
 
 	/////////////////////////////////////////////////////////////////////////

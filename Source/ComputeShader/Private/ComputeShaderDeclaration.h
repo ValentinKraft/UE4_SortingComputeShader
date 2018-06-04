@@ -31,15 +31,15 @@
 //This buffer should contain variables that never, or rarely change
 BEGIN_UNIFORM_BUFFER_STRUCT(FComputeShaderConstantParameters, )
 DECLARE_UNIFORM_BUFFER_STRUCT_MEMBER(float, SimulationSpeed)
-DECLARE_UNIFORM_BUFFER_STRUCT_MEMBER(unsigned int, g_iLevel)
-DECLARE_UNIFORM_BUFFER_STRUCT_MEMBER(unsigned int, g_iLevelMask)
-DECLARE_UNIFORM_BUFFER_STRUCT_MEMBER(unsigned int, g_iWidth)
-DECLARE_UNIFORM_BUFFER_STRUCT_MEMBER(unsigned int, g_iHeight)
 END_UNIFORM_BUFFER_STRUCT(FComputeShaderConstantParameters)
 
 //This buffer is for variables that change very often (each frame for example)
 BEGIN_UNIFORM_BUFFER_STRUCT(FComputeShaderVariableParameters, )
 DECLARE_UNIFORM_BUFFER_STRUCT_MEMBER(float, TotalTimeElapsedSeconds)
+DECLARE_UNIFORM_BUFFER_STRUCT_MEMBER(int, g_iLevel)
+DECLARE_UNIFORM_BUFFER_STRUCT_MEMBER(int, g_iLevelMask)
+DECLARE_UNIFORM_BUFFER_STRUCT_MEMBER(int, g_iWidth)
+DECLARE_UNIFORM_BUFFER_STRUCT_MEMBER(int, g_iHeight)
 END_UNIFORM_BUFFER_STRUCT(FComputeShaderVariableParameters)
 
 typedef TUniformBufferRef<FComputeShaderConstantParameters> FComputeShaderConstantParametersRef;
