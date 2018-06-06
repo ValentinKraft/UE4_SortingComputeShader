@@ -70,7 +70,6 @@ public:
 		bool bShaderHasOutdatedParams = FGlobalShader::Serialize(Ar);
 
 		Ar << OutputSurface;
-		Ar << PointPosTex;
 		Ar << PointPosData;
 
 		return bShaderHasOutdatedParams;
@@ -78,8 +77,7 @@ public:
 
 	//This function is required to let us bind our runtime surface to the shader using an UAV.
 	void SetSurfaces(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef OutputSurfaceUAV);
-	//Set the point position texture
-	void SetPointPosTexture(FRHICommandList& RHICmdList, FShaderResourceViewRHIRef TextureParameterSRV);
+	//Set the point position data
 	void SetPointPosData(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV);
 	//This function is required to bind our constant / uniform buffers to the shader.
 	void SetUniformBuffers(FRHICommandList& RHICmdList, FComputeShaderConstantParameters& ConstantParameters, FComputeShaderVariableParameters& VariableParameters);
@@ -89,7 +87,6 @@ public:
 private:
 	//This is the actual output resource that we will bind to the compute shader
 	FShaderResourceParameter OutputSurface;
-	FShaderResourceParameter PointPosTex;
 	FShaderResourceParameter PointPosData;
 };
 
@@ -113,15 +110,15 @@ public:
 		bool bShaderHasOutdatedParams = FGlobalShader::Serialize(Ar);
 
 		Ar << OutputSurface;
-		Ar << PointPosTex;
+		Ar << PointPosData;
 
 		return bShaderHasOutdatedParams;
 	}
 
 	//This function is required to let us bind our runtime surface to the shader using an UAV.
 	void SetSurfaces(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef OutputSurfaceUAV);
-	//Set the point position texture
-	void SetPointPosTexture(FRHICommandList& RHICmdList, FShaderResourceViewRHIRef TextureParameterSRV);
+	//Set the point position data
+	void SetPointPosData(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV);
 	//This function is required to bind our constant / uniform buffers to the shader.
 	void SetUniformBuffers(FRHICommandList& RHICmdList, FComputeShaderConstantParameters& ConstantParameters, FComputeShaderVariableParameters& VariableParameters);
 	//This is used to clean up the buffer binds after each invocation to let them be changed and used elsewhere if needed.
@@ -130,5 +127,5 @@ public:
 private:
 	//This is the actual output resource that we will bind to the compute shader
 	FShaderResourceParameter OutputSurface;
-	FShaderResourceParameter PointPosTex;
+	FShaderResourceParameter PointPosData;
 };

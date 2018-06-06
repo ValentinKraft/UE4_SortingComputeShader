@@ -36,7 +36,6 @@ FComputeShaderDeclaration::FComputeShaderDeclaration(const ShaderMetaType::Compi
 {
 	//This call is what lets the shader system know that the surface OutputSurface is going to be available in the shader. The second parameter is the name it will be known by in the shader
 	OutputSurface.Bind(Initializer.ParameterMap, TEXT("OutputSurface"));
-	PointPosTex.Bind(Initializer.ParameterMap, TEXT("PointPosTex"));
 	PointPosData.Bind(Initializer.ParameterMap, TEXT("PointPosData"));
 }
 
@@ -52,14 +51,6 @@ void FComputeShaderDeclaration::SetSurfaces(FRHICommandList& RHICmdList, FUnorde
 
 	if (OutputSurface.IsBound())
 		RHICmdList.SetUAVParameter(ComputeShaderRHI, OutputSurface.GetBaseIndex(), OutputSurfaceUAV);
-}
-
-void FComputeShaderDeclaration::SetPointPosTexture(FRHICommandList& RHICmdList, FShaderResourceViewRHIRef TextureParameterSRV) {
-	
-	FComputeShaderRHIParamRef ComputeShaderRHI = GetComputeShader();
-
-	if (PointPosTex.IsBound())
-		RHICmdList.SetShaderResourceViewParameter(ComputeShaderRHI, PointPosTex.GetBaseIndex(), TextureParameterSRV);
 }
 
 void FComputeShaderDeclaration::SetPointPosData(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV) {
@@ -89,8 +80,8 @@ void FComputeShaderDeclaration::UnbindBuffers(FRHICommandList& RHICmdList)
 
 	if (OutputSurface.IsBound())
 		RHICmdList.SetUAVParameter(ComputeShaderRHI, OutputSurface.GetBaseIndex(), FUnorderedAccessViewRHIRef());
-	if (PointPosTex.IsBound())
-		RHICmdList.SetShaderResourceViewParameter(ComputeShaderRHI, PointPosTex.GetBaseIndex(), FShaderResourceViewRHIParamRef());
+	if (PointPosData.IsBound())
+		RHICmdList.SetShaderResourceViewParameter(ComputeShaderRHI, PointPosData.GetBaseIndex(), FShaderResourceViewRHIParamRef());
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -100,7 +91,7 @@ FComputeShaderTransposeDeclaration::FComputeShaderTransposeDeclaration(const Sha
 {
 	//This call is what lets the shader system know that the surface OutputSurface is going to be available in the shader. The second parameter is the name it will be known by in the shader
 	OutputSurface.Bind(Initializer.ParameterMap, TEXT("OutputSurface"));
-	PointPosTex.Bind(Initializer.ParameterMap, TEXT("PointPosTex"));
+	PointPosData.Bind(Initializer.ParameterMap, TEXT("PointPosData"));
 }
 
 void FComputeShaderTransposeDeclaration::ModifyCompilationEnvironment(EShaderPlatform Platform, FShaderCompilerEnvironment& OutEnvironment)
@@ -117,12 +108,12 @@ void FComputeShaderTransposeDeclaration::SetSurfaces(FRHICommandList& RHICmdList
 		RHICmdList.SetUAVParameter(ComputeShaderRHI, OutputSurface.GetBaseIndex(), OutputSurfaceUAV);
 }
 
-void FComputeShaderTransposeDeclaration::SetPointPosTexture(FRHICommandList& RHICmdList, FShaderResourceViewRHIRef TextureParameterSRV) {
-	
+void FComputeShaderTransposeDeclaration::SetPointPosData(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV) {
+
 	FComputeShaderRHIParamRef ComputeShaderRHI = GetComputeShader();
 
-	if (PointPosTex.IsBound())
-		RHICmdList.SetShaderResourceViewParameter(ComputeShaderRHI, PointPosTex.GetBaseIndex(), TextureParameterSRV);
+	if (PointPosData.IsBound())
+		RHICmdList.SetUAVParameter(ComputeShaderRHI, PointPosData.GetBaseIndex(), BufferUAV);
 }
 
 void FComputeShaderTransposeDeclaration::SetUniformBuffers(FRHICommandList& RHICmdList, FComputeShaderConstantParameters& ConstantParameters, FComputeShaderVariableParameters& VariableParameters)
@@ -144,8 +135,8 @@ void FComputeShaderTransposeDeclaration::UnbindBuffers(FRHICommandList& RHICmdLi
 
 	if (OutputSurface.IsBound())
 		RHICmdList.SetUAVParameter(ComputeShaderRHI, OutputSurface.GetBaseIndex(), FUnorderedAccessViewRHIRef());
-	if (PointPosTex.IsBound())
-		RHICmdList.SetShaderResourceViewParameter(ComputeShaderRHI, PointPosTex.GetBaseIndex(), FShaderResourceViewRHIParamRef());
+	if (PointPosData.IsBound())
+		RHICmdList.SetShaderResourceViewParameter(ComputeShaderRHI, PointPosData.GetBaseIndex(), FShaderResourceViewRHIParamRef());
 }
 
 //This is what will instantiate the shader into the engine from the engine/Shaders folder
