@@ -66,8 +66,6 @@ public:
 
 	FTexture2DRHIRef GetTexture() { return Texture; }
 
-	// Send the reference to the point position texture to the compute shader
-	void SetPointPosTextureReference(FTexture2DRHIRef tex) { PointPosTex = tex; }
 	// Send the reference to the point position data to the compute shader
 	void SetPointPosDataReference(TArray<FLinearColor>* data) {
 		check(data->Num() <= NUM_ELEMENTS);
@@ -91,14 +89,10 @@ private:
 	FTexture2DRHIRef Texture;
 	FStructuredBufferRHIParamRef Buffer;
 
-	FTexture2DRHIRef PointPosTex;
 	TResourceArray<FVector4> PointPosData;
 
 	/** We need a UAV if we want to be able to write to the resource*/
 	FUnorderedAccessViewRHIRef TextureUAV;
 	FUnorderedAccessViewRHIRef BufferUAV;
-
-	/** Since we are only reading from the pointPos texture, we do not need a UAV; an SRV is sufficient */
-	FShaderResourceViewRHIRef TextureParameterSRV;
 
 };

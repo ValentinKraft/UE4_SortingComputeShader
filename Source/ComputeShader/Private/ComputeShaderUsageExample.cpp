@@ -44,7 +44,6 @@ FComputeShaderUsageExample::FComputeShaderUsageExample(float SimulationSpeed, in
 	FRHIResourceCreateInfo CreateInfo;
 	Texture = RHICreateTexture2D(SizeX, SizeY, PF_A32B32G32R32F, 1, 1, TexCreate_ShaderResource | TexCreate_UAV, CreateInfo);
 	TextureUAV = RHICreateUnorderedAccessView(Texture);
-	TextureParameterSRV = NULL;
 
 	PointPosData.Init(FVector4(0.f, 0.f, 0.f, 1.f), NUM_ELEMENTS);
 
@@ -90,11 +89,6 @@ void FComputeShaderUsageExample::ExecuteComputeShaderInternal()
 			TextureUAV.SafeRelease();
 			TextureUAV = NULL;
 		}
-		if (NULL != TextureParameterSRV)
-		{
-			TextureParameterSRV.SafeRelease();
-			TextureParameterSRV = NULL;
-		}
 		if (NULL != BufferUAV) {
 			BufferUAV.SafeRelease();
 			BufferUAV = NULL;
@@ -113,29 +107,22 @@ void FComputeShaderUsageExample::ExecuteComputeShaderInternal()
 }
 
 void FComputeShaderUsageExample::ParallelBitonicSort(FRHICommandListImmediate & RHICmdList)
-{
-	/** Compute shader calculation */
+{	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// Parallel Bitonic Sort, adapted from https://code.msdn.microsoft.com/windowsdesktop/DirectCompute-Basic-Win32-7d5a7408
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	//* Create Compute Shader */
 	TShaderMapRef<FComputeShaderDeclaration> ComputeShader(GetGlobalShaderMap(FeatureLevel));
-	RHICmdList.SetComputeShader(ComputeShader->GetComputeShader());
-
-	// Transpose CS test
 	TShaderMapRef<FComputeShaderTransposeDeclaration> ComputeShaderTranspose(GetGlobalShaderMap(FeatureLevel));
+	RHICmdList.SetComputeShader(ComputeShader->GetComputeShader());	
 
-	// NEW: Create resource view to pass the point position texture to the compute shader
-	if (PointPosTex) {
-		TextureParameterSRV = RHICreateShaderResourceView(PointPosTex, 0);
-
-		ComputeShader->SetPointPosTexture(RHICmdList, TextureParameterSRV);
-		ComputeShaderTranspose->SetPointPosTexture(RHICmdList, TextureParameterSRV);
-
-		/// Update StructuredBuffer with new Data
-		BufferUAV.SafeRelease();
-		FRHIResourceCreateInfo CreateInfo;
-		CreateInfo.ResourceArray = &PointPosData;
-		Buffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
-		BufferUAV = RHICreateUnorderedAccessView(Buffer, false, false);
-		ComputeShader->SetPointPosData(RHICmdList, BufferUAV);
-	}
+	//* Update StructuredBuffer with new Data */
+	BufferUAV.SafeRelease();
+	FRHIResourceCreateInfo CreateInfo;
+	CreateInfo.ResourceArray = &PointPosData;
+	Buffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
+	BufferUAV = RHICreateUnorderedAccessView(Buffer, false, false);
+	ComputeShader->SetPointPosData(RHICmdList, BufferUAV);
 
 	/////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////
@@ -152,7 +139,7 @@ void FComputeShaderUsageExample::ParallelBitonicSort(FRHICommandListImmediate & 
 		// Sort the row data
 		ComputeShader->SetSurfaces(RHICmdList, TextureUAV);
 		RHICmdList.SetComputeShader(ComputeShader->GetComputeShader());
-		DispatchComputeShader(RHICmdList, *ComputeShader, 1, NUM_ELEMENTS / BITONIC_BLOCK_SIZE / 2, 1);
+		DispatchComputeShader(RHICmdList, *ComputeShader, 1, NUM_ELEMENTS / BITONIC_BLOCK_SIZE, 1);
 	}
 
 	// Then sort the rows and columns for the levels > than the block size
