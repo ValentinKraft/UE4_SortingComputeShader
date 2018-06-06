@@ -76,6 +76,9 @@ public:
 	}
 
 private:
+	void ParallelBitonicSort(FRHICommandListImmediate& RHICmdList);
+	void SaveScreenshot(FRHICommandListImmediate& RHICmdList);
+
 	bool bIsComputeShaderExecuting;
 	bool bIsUnloading;
 	bool bSave;
@@ -98,5 +101,4 @@ private:
 	/** Since we are only reading from the pointPos texture, we do not need a UAV; an SRV is sufficient */
 	FShaderResourceViewRHIRef TextureParameterSRV;
 
-	void SaveScreenshot(FRHICommandListImmediate& RHICmdList);
 };
