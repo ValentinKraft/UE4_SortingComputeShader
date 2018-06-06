@@ -29,9 +29,7 @@
 FComputeShaderUsageExample::FComputeShaderUsageExample(float SimulationSpeed, int32 SizeX, int32 SizeY, ERHIFeatureLevel::Type ShaderFeatureLevel)
 {
 	FeatureLevel = ShaderFeatureLevel;
-
 	ConstantParameters.SimulationSpeed = SimulationSpeed;
-
 	VariableParameters = FComputeShaderVariableParameters();
 
 	bIsComputeShaderExecuting = false;
@@ -53,7 +51,6 @@ FComputeShaderUsageExample::FComputeShaderUsageExample(float SimulationSpeed, in
 	CreateInfo.ResourceArray = &PointPosData;
 	Buffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
 	BufferUAV = RHICreateUnorderedAccessView(Buffer, false, false);
-	//BufferSRV = NULL;
 }
 
 FComputeShaderUsageExample::~FComputeShaderUsageExample()
@@ -64,9 +61,7 @@ FComputeShaderUsageExample::~FComputeShaderUsageExample()
 void FComputeShaderUsageExample::ExecuteComputeShader(float TotalElapsedTimeSeconds)
 {
 	if (bIsUnloading || bIsComputeShaderExecuting) //Skip this execution round if we are already executing
-	{
 		return;
-	}
 
 	bIsComputeShaderExecuting = true;
 
@@ -95,19 +90,30 @@ void FComputeShaderUsageExample::ExecuteComputeShaderInternal()
 			TextureUAV.SafeRelease();
 			TextureUAV = NULL;
 		}
-
 		if (NULL != TextureParameterSRV)
 		{
 			TextureParameterSRV.SafeRelease();
 			TextureParameterSRV = NULL;
 		}
-
+		if (NULL != BufferUAV) {
+			BufferUAV.SafeRelease();
+			BufferUAV = NULL;
+		}
 		return;
 	}
 	
 	/* Get global RHI command list */
 	FRHICommandListImmediate& RHICmdList = GRHICommandList.GetImmediateCommandList();
 
+	/* Sorting routine */
+	ParallelBitonicSort(RHICmdList);
+
+	if (bSave) { bSave = false;	SaveScreenshot(RHICmdList);	}
+	bIsComputeShaderExecuting = false;
+}
+
+void FComputeShaderUsageExample::ParallelBitonicSort(FRHICommandListImmediate & RHICmdList)
+{
 	/** Compute shader calculation */
 	TShaderMapRef<FComputeShaderDeclaration> ComputeShader(GetGlobalShaderMap(FeatureLevel));
 	RHICmdList.SetComputeShader(ComputeShader->GetComputeShader());
@@ -118,12 +124,11 @@ void FComputeShaderUsageExample::ExecuteComputeShaderInternal()
 	// NEW: Create resource view to pass the point position texture to the compute shader
 	if (PointPosTex) {
 		TextureParameterSRV = RHICreateShaderResourceView(PointPosTex, 0);
-		//BufferSRV = RHICreateShaderResourceView(Buffer);
 
 		ComputeShader->SetPointPosTexture(RHICmdList, TextureParameterSRV);
 		ComputeShaderTranspose->SetPointPosTexture(RHICmdList, TextureParameterSRV);
 
-		/// TEST
+		/// Update StructuredBuffer with new Data
 		BufferUAV.SafeRelease();
 		FRHIResourceCreateInfo CreateInfo;
 		CreateInfo.ResourceArray = &PointPosData;
@@ -191,24 +196,6 @@ void FComputeShaderUsageExample::ExecuteComputeShaderInternal()
 		DispatchComputeShader(RHICmdList, *ComputeShader, 1, NUM_ELEMENTS / BITONIC_BLOCK_SIZE, 1);
 	}
 	ComputeShader->UnbindBuffers(RHICmdList);
-
-	/////////////////////////////////////////////////////////////////////////
-	/////////////////////////////////////////////////////////////////////////
-
-	/* Set inputs/outputs and dispatch compute shader */
-	//ComputeShader->SetSurfaces(RHICmdList, TextureUAV);
-	//ComputeShader->SetUniformBuffers(RHICmdList, ConstantParameters, VariableParameters);
-	//DispatchComputeShader(RHICmdList, *ComputeShader, 1, NUM_ELEMENTS / BITONIC_BLOCK_SIZE, 1);
-	//ComputeShader->UnbindBuffers(RHICmdList);
-
-	if (bSave) //Save to disk if we have a save request!
-	{
-		bSave = false;
-
-		SaveScreenshot(RHICmdList);
-	}
-
-	bIsComputeShaderExecuting = false;
 }
 
 void FComputeShaderUsageExample::SaveScreenshot(FRHICommandListImmediate& RHICmdList)

@@ -97,7 +97,6 @@ private:
 
 	/** Since we are only reading from the pointPos texture, we do not need a UAV; an SRV is sufficient */
 	FShaderResourceViewRHIRef TextureParameterSRV;
-	//FShaderResourceViewRHIRef BufferSRV;
 
 	void SaveScreenshot(FRHICommandListImmediate& RHICmdList);
 };
