@@ -37,6 +37,7 @@ FComputeShaderDeclaration::FComputeShaderDeclaration(const ShaderMetaType::Compi
 	//This call is what lets the shader system know that the surface OutputSurface is going to be available in the shader. The second parameter is the name it will be known by in the shader
 	OutputSurface.Bind(Initializer.ParameterMap, TEXT("OutputSurface"));
 	PointPosTex.Bind(Initializer.ParameterMap, TEXT("PointPosTex"));
+	PointPosData.Bind(Initializer.ParameterMap, TEXT("PointPosData"));
 }
 
 void FComputeShaderDeclaration::ModifyCompilationEnvironment(EShaderPlatform Platform, FShaderCompilerEnvironment& OutEnvironment)
@@ -59,6 +60,14 @@ void FComputeShaderDeclaration::SetPointPosTexture(FRHICommandList& RHICmdList, 
 
 	if (PointPosTex.IsBound())
 		RHICmdList.SetShaderResourceViewParameter(ComputeShaderRHI, PointPosTex.GetBaseIndex(), TextureParameterSRV);
+}
+
+void FComputeShaderDeclaration::SetPointPosData(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV) {
+
+	FComputeShaderRHIParamRef ComputeShaderRHI = GetComputeShader();
+
+	if (PointPosData.IsBound())
+		RHICmdList.SetUAVParameter(ComputeShaderRHI, PointPosData.GetBaseIndex(), BufferUAV);
 }
 
 void FComputeShaderDeclaration::SetUniformBuffers(FRHICommandList& RHICmdList, FComputeShaderConstantParameters& ConstantParameters, FComputeShaderVariableParameters& VariableParameters)

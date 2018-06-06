@@ -27,6 +27,7 @@
 #include "GlobalShader.h"
 #include "UniformBuffer.h"
 #include "RHICommandList.h"
+#include "DynamicRHIResourceArray.h"
 
 //This buffer should contain variables that never, or rarely change
 BEGIN_UNIFORM_BUFFER_STRUCT(FComputeShaderConstantParameters, )
@@ -70,6 +71,7 @@ public:
 
 		Ar << OutputSurface;
 		Ar << PointPosTex;
+		Ar << PointPosData;
 
 		return bShaderHasOutdatedParams;
 	}
@@ -78,6 +80,7 @@ public:
 	void SetSurfaces(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef OutputSurfaceUAV);
 	//Set the point position texture
 	void SetPointPosTexture(FRHICommandList& RHICmdList, FShaderResourceViewRHIRef TextureParameterSRV);
+	void SetPointPosData(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV);
 	//This function is required to bind our constant / uniform buffers to the shader.
 	void SetUniformBuffers(FRHICommandList& RHICmdList, FComputeShaderConstantParameters& ConstantParameters, FComputeShaderVariableParameters& VariableParameters);
 	//This is used to clean up the buffer binds after each invocation to let them be changed and used elsewhere if needed.
@@ -87,6 +90,7 @@ private:
 	//This is the actual output resource that we will bind to the compute shader
 	FShaderResourceParameter OutputSurface;
 	FShaderResourceParameter PointPosTex;
+	FShaderResourceParameter PointPosData;
 };
 
 

@@ -26,6 +26,14 @@
 
 #include "Private/ComputeShaderDeclaration.h"
 
+
+const UINT NUM_ELEMENTS = 256 * 256;
+const UINT BITONIC_BLOCK_SIZE = 256;
+const UINT TRANSPOSE_BLOCK_SIZE = 8;
+const UINT MATRIX_WIDTH = BITONIC_BLOCK_SIZE;
+const UINT MATRIX_HEIGHT = NUM_ELEMENTS / BITONIC_BLOCK_SIZE;
+
+
 /***************************************************************************/
 /* This class demonstrates how to use the compute shader we have declared. */
 /* Most importantly which RHI functions are needed to call and how to get  */
@@ -60,6 +68,12 @@ public:
 
 	// Send the reference to the point position texture to the compute shader
 	void SetPointPosTextureReference(FTexture2DRHIRef tex) { PointPosTex = tex; }
+	// Send the reference to the point position data to the compute shader
+	void SetPointPosDataReference(TArray<FLinearColor>* data) {
+		check(data->Num() <= NUM_ELEMENTS);
+		for (int i = 0; i < data->Num(); ++i)
+			PointPosData[i] = FVector4((*data)[i]);
+	}
 
 private:
 	bool bIsComputeShaderExecuting;
@@ -75,6 +89,7 @@ private:
 	FStructuredBufferRHIParamRef Buffer;
 
 	FTexture2DRHIRef PointPosTex;
+	TResourceArray<FVector4> PointPosData;
 
 	/** We need a UAV if we want to be able to write to the resource*/
 	FUnorderedAccessViewRHIRef TextureUAV;
@@ -82,7 +97,7 @@ private:
 
 	/** Since we are only reading from the pointPos texture, we do not need a UAV; an SRV is sufficient */
 	FShaderResourceViewRHIRef TextureParameterSRV;
-	FShaderResourceViewRHIRef BufferSRV;
+	//FShaderResourceViewRHIRef BufferSRV;
 
 	void SaveScreenshot(FRHICommandListImmediate& RHICmdList);
 };

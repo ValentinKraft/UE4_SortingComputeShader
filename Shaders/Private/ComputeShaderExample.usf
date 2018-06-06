@@ -40,12 +40,12 @@ void MainComputeShader(uint3 Gid : SV_GroupID,             //atm: -, 0...256, - 
     float4 camPos = float4(0.0, 0.0, 0.0, 0.0); // #Temp
     
     // fill structured buffer at beginning
-    if ((int) CSVariables.g_iLevel == (int) 2)
-    {
-        float4 pointPos = PointPosTex.Load(int3(DTid.xy, 0));
-        PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x] = pointPos;
-        GroupMemoryBarrierWithGroupSync();
-    }
+    //if ((int) CSVariables.g_iLevel == (int) 2)
+    //{
+    //    float4 pointPos = PointPosTex.Load(int3(DTid.xy, 0));
+    //    PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x] = pointPos;
+    //    GroupMemoryBarrierWithGroupSync();
+    //}
     
     shared_data[GI] = PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x];
     GroupMemoryBarrierWithGroupSync();
