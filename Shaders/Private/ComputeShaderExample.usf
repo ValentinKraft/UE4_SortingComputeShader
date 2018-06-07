@@ -19,7 +19,6 @@
 //--------------------------------------------------------------------------------------
 
 RWTexture2D<float4> OutputSurface;      //UAV Texture
-Texture2D<float4> PointPosTex;          //Read-Only Point Position Texture
 RWStructuredBuffer<float4> PointPosData : register(t0);
 
 // Thread group shared memory limit (DX11): 32KB --> 2048 float4 values --> 32 thread groups optimum --> 1024 Threads optimum (?)
@@ -37,43 +36,17 @@ void MainComputeShader(uint3 Gid : SV_GroupID,             //atm: -, 0...256, - 
 	//Set up some variables we are going to need
 	float sizeX, sizeY;
 	OutputSurface.GetDimensions(sizeX, sizeY);
-    float4 camPos = float4(0.0, 0.0, 0.0, 0.0); // #Temp
+    float4 camPos = float4(0.f, -300.f, 120.f, 0.f); // #Temp
     
-    // fill structured buffer at beginning
-    //if ((int) CSVariables.g_iLevel == (int) 2)
-    //{
-    //    float4 pointPos = PointPosTex.Load(int3(DTid.xy, 0));
-    //    PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x] = pointPos;
-    //    GroupMemoryBarrierWithGroupSync();
-    //}
-    
+    // Load initial data
     shared_data[GI] = PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x];
     GroupMemoryBarrierWithGroupSync();
-
-
-
-    //uint3 pDTid = uint3(DTid.x, DTid.y + 64, 0);       //partner id
-    //float4 partnerPointPos = PointPosTex.Load(int3(pDTid));
-    //GroupMemoryBarrierWithGroupSync();
-
-    //if (distance(partnerPointPos, camPos) > distance(pointPos, camPos))
-    //{
-    //    OutputSurface[DTid.xy] = pointPos;
-    //    OutputSurface[pDTid.xy] = partnerPointPos;
-    //}
-    //else
-    //{
-    //    OutputSurface[DTid.xy] = partnerPointPos;
-    //    OutputSurface[pDTid.xy] = pointPos;
-    //}
-
-
 
 
     // Now each thread must pick the min or max of the two elements it is comparing. The thread cannot compare and swap both elements because that would require random access writes.
     for (unsigned int j = CSVariables.g_iLevel >> 1; j > 0; j >>= 1)
     {
-        float4 result = ((length(shared_data[GI & ~j]) <= length(shared_data[GI | j])) == (bool) (CSVariables.g_iLevelMask & DTid.x)) ? shared_data[GI ^ j] : shared_data[GI];
+        float4 result = ((distance(shared_data[GI & ~j], camPos) <= distance(shared_data[GI | j], camPos)) == (bool) (CSVariables.g_iLevelMask & DTid.x)) ? shared_data[GI ^ j] : shared_data[GI];
         GroupMemoryBarrierWithGroupSync();
         shared_data[GI] = result;
         GroupMemoryBarrierWithGroupSync();
@@ -101,9 +74,7 @@ void TransposeMatrix(uint3 Gid : SV_GroupID,
                      uint3 GTid : SV_GroupThreadID,
                      uint GI : SV_GroupIndex)
 {
-    //float4 pointPos = PointPosTex.Load(int3(DTid.xy, 0));
-    //transpose_shared_data[GI] = pointPos;
-    //GroupMemoryBarrierWithGroupSync();
-    //OutputSurface[DTid.xy] = transpose_shared_data[GTid.x * TRANSPOSE_BLOCK_SIZE + GTid.y];
-    //OutputSurface[DTid.xy] = float4(1.0f, 0.0f, 0.0f, 1.0f);
+    transpose_shared_data[GI] = PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x];;
+    GroupMemoryBarrierWithGroupSync();
+    OutputSurface[DTid.xy] = transpose_shared_data[GTid.x * TRANSPOSE_BLOCK_SIZE + GTid.y];
 }
