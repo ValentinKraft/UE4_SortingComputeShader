@@ -46,7 +46,7 @@ void MainComputeShader(uint3 Gid : SV_GroupID,             //atm: -, 0...256, - 
     // Now each thread must pick the min or max of the two elements it is comparing. The thread cannot compare and swap both elements because that would require random access writes.
     for (unsigned int j = CSVariables.g_iLevel >> 1; j > 0; j >>= 1)
     {
-        float4 result = ((distance(shared_data[GI & ~j], camPos) <= distance(shared_data[GI | j], camPos)) == (bool) (CSVariables.g_iLevelMask & DTid.x)) ? shared_data[GI ^ j] : shared_data[GI];
+        float4 result = ((distance(shared_data[GI & ~j], camPos) >= distance(shared_data[GI | j], camPos)) == (bool) (CSVariables.g_iLevelMask & DTid.x)) ? shared_data[GI ^ j] : shared_data[GI];
         GroupMemoryBarrierWithGroupSync();
         shared_data[GI] = result;
         GroupMemoryBarrierWithGroupSync();
@@ -77,4 +77,5 @@ void TransposeMatrix(uint3 Gid : SV_GroupID,
     transpose_shared_data[GI] = PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x];;
     GroupMemoryBarrierWithGroupSync();
     OutputSurface[DTid.xy] = transpose_shared_data[GTid.x * TRANSPOSE_BLOCK_SIZE + GTid.y];
+    PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x] = transpose_shared_data[GTid.x * TRANSPOSE_BLOCK_SIZE + GTid.y];
 }
