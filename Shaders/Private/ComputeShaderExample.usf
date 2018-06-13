@@ -19,7 +19,7 @@
 //--------------------------------------------------------------------------------------
 
 RWTexture2D<float4> OutputSurface;      //UAV Texture
-RWStructuredBuffer<float4> PointPosData : register(t0);
+RWStructuredBuffer<float4> PointPosData : register(u0);
 
 // Thread group shared memory limit (DX11): 32KB --> 2048 float4 values --> 32 thread groups optimum --> 1024 Threads optimum (?)
 // Only shared within a thread group!
@@ -55,18 +55,18 @@ void MainComputeShader(uint3 Gid : SV_GroupID,             //atm: -, 0...256, - 
     // Display all threads
     //OutputSurface[DTid.xy] = float4(float3(DTid.xy, 0), 0)/256.0f;
     
-    //OutputSurface[DTid.xy] = pointPos;
     PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x] = shared_data[GI];
     GroupMemoryBarrierWithGroupSync();
-    OutputSurface[DTid.xy] = PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x];
-    //OutputSurface[DTid.xy] = float4(0.0f, (float) (CSVariables.g_iLevel / 2), 0.0f, 1.0f);
 
+    // Update output texture at the end
+    if (CSVariables.g_iLevel == 256)
+        OutputSurface[DTid.xy] = PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x];
 }
 
 //--------------------------------------------------------------------------------------
 // Matrix Transpose Compute Shader
 //--------------------------------------------------------------------------------------
-groupshared unsigned int transpose_shared_data[TRANSPOSE_BLOCK_SIZE * TRANSPOSE_BLOCK_SIZE];
+groupshared float4 transpose_shared_data[TRANSPOSE_BLOCK_SIZE * TRANSPOSE_BLOCK_SIZE];
 
 [numthreads(TRANSPOSE_BLOCK_SIZE, TRANSPOSE_BLOCK_SIZE, 1)]
 void TransposeMatrix(uint3 Gid : SV_GroupID,
@@ -76,6 +76,6 @@ void TransposeMatrix(uint3 Gid : SV_GroupID,
 {
     transpose_shared_data[GI] = PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x];;
     GroupMemoryBarrierWithGroupSync();
-    OutputSurface[DTid.xy] = transpose_shared_data[GTid.x * TRANSPOSE_BLOCK_SIZE + GTid.y];
+    //OutputSurface[DTid.xy] = transpose_shared_data[GTid.x * TRANSPOSE_BLOCK_SIZE + GTid.y];
     PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x] = transpose_shared_data[GTid.x * TRANSPOSE_BLOCK_SIZE + GTid.y];
 }
