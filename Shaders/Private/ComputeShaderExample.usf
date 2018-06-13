@@ -36,9 +36,9 @@ void MainComputeShader(uint3 Gid : SV_GroupID,             //atm: -, 0...256, - 
 	//Set up some variables we are going to need
 	float sizeX, sizeY;
 	OutputSurface.GetDimensions(sizeX, sizeY);
-    float4 camPos = float4(0.f, -400.f, 0.f, 1.f); // #Temp
+    float3 camPos = float3(0.f, 0.f, -400.f); // #Temp - mind mapping: Z/X/Y!
     
-    // Load initial data
+    // Load initial data - mind mapping: Z/X/Y/Z!
     shared_data[GI] = PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x];
     GroupMemoryBarrierWithGroupSync();
 
@@ -46,7 +46,9 @@ void MainComputeShader(uint3 Gid : SV_GroupID,             //atm: -, 0...256, - 
     // Now each thread must pick the min or max of the two elements it is comparing. The thread cannot compare and swap both elements because that would require random access writes.
     for (unsigned int j = CSVariables.g_iLevel >> 1; j > 0; j >>= 1)
     {
-        float4 result = ((distance(shared_data[GI & ~j], camPos) >= distance(shared_data[GI | j], camPos)) == (bool) (CSVariables.g_iLevelMask & DTid.x)) ? shared_data[GI ^ j] : shared_data[GI];
+        float3 pos1 = shared_data[GI & ~j];
+        float3 pos2 = shared_data[GI | j];
+        float4 result = ((distance(pos1, camPos) >= distance(pos2, camPos)) == (bool) (CSVariables.g_iLevelMask & DTid.x)) ? shared_data[GI ^ j] : shared_data[GI];
         GroupMemoryBarrierWithGroupSync();
         shared_data[GI] = result;
         GroupMemoryBarrierWithGroupSync();
@@ -75,7 +77,7 @@ void TransposeMatrix(uint3 Gid : SV_GroupID,
                      uint3 GTid : SV_GroupThreadID,
                      uint GI : SV_GroupIndex)
 {
-    transpose_shared_data[GI] = PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x];;
+    transpose_shared_data[GI] = PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x];
     GroupMemoryBarrierWithGroupSync();
     //OutputSurface[DTid.xy] = transpose_shared_data[GTid.x * TRANSPOSE_BLOCK_SIZE + GTid.y];
     PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x] = transpose_shared_data[GTid.x * TRANSPOSE_BLOCK_SIZE + GTid.y];
