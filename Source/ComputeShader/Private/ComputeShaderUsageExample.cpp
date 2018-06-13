@@ -154,15 +154,11 @@ void FComputeShaderUsageExample::ParallelBitonicSort(FRHICommandListImmediate & 
 		ComputeShaderTranspose->SetUniformBuffers(RHICmdList, ConstantParameters, VariableParameters);
 
 		// Transpose the data from buffer 1 into buffer 2
-		ComputeShaderTranspose->SetSurfaces(RHICmdList, TextureUAV);
-		ComputeShaderTranspose->SetPointPosData(RHICmdList, BufferUAV);
 		RHICmdList.SetComputeShader(ComputeShaderTranspose->GetComputeShader());
 		DispatchComputeShader(RHICmdList, *ComputeShaderTranspose, 1, MATRIX_HEIGHT / TRANSPOSE_BLOCK_SIZE, MATRIX_WIDTH / TRANSPOSE_BLOCK_SIZE);
 
 		// Sort the transposed column data
 		ComputeShader->SetUniformBuffers(RHICmdList, ConstantParameters, VariableParameters);
-		ComputeShader->SetSurfaces(RHICmdList, TextureUAV);
-		ComputeShader->SetPointPosData(RHICmdList, BufferUAV);
 		RHICmdList.SetComputeShader(ComputeShader->GetComputeShader());
 		DispatchComputeShader(RHICmdList, *ComputeShader, 1, NUM_ELEMENTS / BITONIC_BLOCK_SIZE, 1);
 
@@ -174,15 +170,12 @@ void FComputeShaderUsageExample::ParallelBitonicSort(FRHICommandListImmediate & 
 		ComputeShaderTranspose->SetUniformBuffers(RHICmdList, ConstantParameters, VariableParameters);
 
 		// Transpose the data from buffer 2 back into buffer 1
-		ComputeShaderTranspose->SetSurfaces(RHICmdList, TextureUAV);
-		ComputeShaderTranspose->SetPointPosData(RHICmdList, BufferUAV);
 		RHICmdList.SetComputeShader(ComputeShaderTranspose->GetComputeShader());
 		DispatchComputeShader(RHICmdList, *ComputeShaderTranspose, 1, MATRIX_HEIGHT / TRANSPOSE_BLOCK_SIZE, MATRIX_WIDTH / TRANSPOSE_BLOCK_SIZE);
 
 		// Sort the row data
 		ComputeShader->SetUniformBuffers(RHICmdList, ConstantParameters, VariableParameters);
 		ComputeShader->SetSurfaces(RHICmdList, TextureUAV);
-		ComputeShader->SetPointPosData(RHICmdList, BufferUAV);
 		RHICmdList.SetComputeShader(ComputeShader->GetComputeShader());
 		DispatchComputeShader(RHICmdList, *ComputeShader, 1, NUM_ELEMENTS / BITONIC_BLOCK_SIZE, 1);
 	}
