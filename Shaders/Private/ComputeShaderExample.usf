@@ -18,7 +18,7 @@
 // Constant Buffers
 //--------------------------------------------------------------------------------------
 
-RWTexture2D<float4> OutputSurface;      //UAV Texture
+RWTexture2D<float4> OutputSurface : register(u1); //UAV Texture
 RWStructuredBuffer<float4> PointPosData : register(u0);
 
 // Thread group shared memory limit (DX11): 32KB --> 2048 float4 values --> 32 thread groups optimum --> 1024 Threads optimum (?)
@@ -62,8 +62,8 @@ void MainComputeShader(uint3 Gid : SV_GroupID,             //atm: -, 0...256, - 
     //OutputSurface[DTid.xy] = float4(float3(DTid.xy, 0), 0)/256.0f;
 
     // Update output texture at the end
-    if (CSVariables.g_iLevel == 256)
-        OutputSurface[DTid.xy] = PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x];
+    //if (CSVariables.g_iLevelMask == BITONIC_BLOCK_SIZE * BITONIC_BLOCK_SIZE)
+    //    OutputSurface[DTid.xy] = PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x];
 }
 
 //--------------------------------------------------------------------------------------
@@ -77,8 +77,16 @@ void TransposeMatrix(uint3 Gid : SV_GroupID,
                      uint3 GTid : SV_GroupThreadID,
                      uint GI : SV_GroupIndex)
 {
-    transpose_shared_data[GI] = PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x];
+    transpose_shared_data[GI] = PointPosData[DTid.y * CSVariables.g_iWidth + DTid.x];
     GroupMemoryBarrierWithGroupSync();
     //OutputSurface[DTid.xy] = transpose_shared_data[GTid.x * TRANSPOSE_BLOCK_SIZE + GTid.y];
-    PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x] = transpose_shared_data[GTid.x * TRANSPOSE_BLOCK_SIZE + GTid.y];
+    //PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x] = transpose_shared_data[GTid.x * TRANSPOSE_BLOCK_SIZE + GTid.y];
+
+    uint2 XY = DTid.yx - GTid.yx + GTid.xy;
+    PointPosData[XY.y * CSVariables.g_iHeight + XY.x] = transpose_shared_data[GTid.x * TRANSPOSE_BLOCK_SIZE + GTid.y];
+
+    //OutputSurface[DTid.xy] = float4(float3(DTid.xy, 0), 0) / 256.0f;
+    //OutputSurface[DTid.xy] = PointPosData[DTid.y * 256 + DTid.x];
+    OutputSurface[DTid.xy] = float4(1.f, 1.f, 1.f, 1.f);
+
 }

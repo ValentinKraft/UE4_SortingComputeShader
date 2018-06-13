@@ -114,7 +114,6 @@ void FComputeShaderUsageExample::ParallelBitonicSort(FRHICommandListImmediate & 
 	//* Create Compute Shader */
 	TShaderMapRef<FComputeShaderDeclaration> ComputeShader(GetGlobalShaderMap(FeatureLevel));
 	TShaderMapRef<FComputeShaderTransposeDeclaration> ComputeShaderTranspose(GetGlobalShaderMap(FeatureLevel));
-	RHICmdList.SetComputeShader(ComputeShader->GetComputeShader());	
 
 	//* Update StructuredBuffer with new Data */
 	BufferUAV.SafeRelease();
@@ -123,6 +122,7 @@ void FComputeShaderUsageExample::ParallelBitonicSort(FRHICommandListImmediate & 
 	Buffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
 	BufferUAV = RHICreateUnorderedAccessView(Buffer, false, false);
 	ComputeShader->SetPointPosData(RHICmdList, BufferUAV);
+	ComputeShaderTranspose->SetPointPosData(RHICmdList, BufferUAV);
 
 	/////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////
@@ -132,8 +132,8 @@ void FComputeShaderUsageExample::ParallelBitonicSort(FRHICommandListImmediate & 
 		// Set constants
 		VariableParameters.g_iLevel = level;
 		VariableParameters.g_iLevelMask = level;
-		VariableParameters.g_iHeight = MATRIX_HEIGHT;
-		VariableParameters.g_iWidth = MATRIX_WIDTH;
+		VariableParameters.g_iHeight = MATRIX_WIDTH;
+		VariableParameters.g_iWidth = MATRIX_HEIGHT;
 		ComputeShader->SetUniformBuffers(RHICmdList, ConstantParameters, VariableParameters);
 
 		// Sort the row data
@@ -151,7 +151,6 @@ void FComputeShaderUsageExample::ParallelBitonicSort(FRHICommandListImmediate & 
 		VariableParameters.g_iHeight = MATRIX_HEIGHT;
 		VariableParameters.g_iWidth = MATRIX_WIDTH;
 		ComputeShaderTranspose->SetUniformBuffers(RHICmdList, ConstantParameters, VariableParameters);
-		ComputeShaderTranspose->SetUniformBuffers(RHICmdList, ConstantParameters, VariableParameters);
 
 		// Transpose the data from buffer 1 into buffer 2
 		RHICmdList.SetComputeShader(ComputeShaderTranspose->GetComputeShader());
@@ -165,9 +164,12 @@ void FComputeShaderUsageExample::ParallelBitonicSort(FRHICommandListImmediate & 
 		// Set constants
 		VariableParameters.g_iLevel = BITONIC_BLOCK_SIZE;
 		VariableParameters.g_iLevelMask = level;
-		VariableParameters.g_iHeight = MATRIX_HEIGHT;
-		VariableParameters.g_iWidth = MATRIX_WIDTH;
+		VariableParameters.g_iHeight = MATRIX_WIDTH;
+		VariableParameters.g_iWidth = MATRIX_HEIGHT;
 		ComputeShaderTranspose->SetUniformBuffers(RHICmdList, ConstantParameters, VariableParameters);
+
+		// Test
+		//ComputeShaderTranspose->SetSurfaces(RHICmdList, TextureUAV);
 
 		// Transpose the data from buffer 2 back into buffer 1
 		RHICmdList.SetComputeShader(ComputeShaderTranspose->GetComputeShader());
