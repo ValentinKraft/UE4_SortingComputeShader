@@ -34,8 +34,8 @@ void MainComputeShader(uint3 Gid : SV_GroupID,             //atm: -, 0...256, - 
                        uint GI : SV_GroupIndex)            //atm: 0...256 in columns (X)           --> "flattened" index of a thread within a group
 {
 	//Set up some variables we are going to need
-	float sizeX, sizeY;
-	OutputSurface.GetDimensions(sizeX, sizeY);
+    float sizeX, sizeY;
+    OutputSurface.GetDimensions(sizeX, sizeY);
     float3 camPos = float3(0.f, 0.f, -400.f); // #Temp - mind mapping: Z/X/Y!
     
     // Load initial data - mind mapping: Z/X/Y/Z!
@@ -59,11 +59,15 @@ void MainComputeShader(uint3 Gid : SV_GroupID,             //atm: -, 0...256, - 
     GroupMemoryBarrierWithGroupSync();
 
     // Display all threads
-    //OutputSurface[DTid.xy] = float4(float3(DTid.xy, 0), 0)/256.0f;
+    //if (CSVariables.g_iLevelMask == 512)
+    //    OutputSurface[DTid.xy] = float4(float3(DTid.xy, 0), 0) / 256.0f;
 
     // Update output texture at the end
-    //if (CSVariables.g_iLevelMask == BITONIC_BLOCK_SIZE * BITONIC_BLOCK_SIZE)
-    //    OutputSurface[DTid.xy] = PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x];
+    if (CSVariables.g_iLevelMask == BITONIC_BLOCK_SIZE * BITONIC_BLOCK_SIZE)
+    {
+        OutputSurface[DTid.xy] = PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x];
+        GroupMemoryBarrierWithGroupSync();
+    }
 }
 
 //--------------------------------------------------------------------------------------
@@ -87,6 +91,7 @@ void TransposeMatrix(uint3 Gid : SV_GroupID,
 
     //OutputSurface[DTid.xy] = float4(float3(DTid.xy, 0), 0) / 256.0f;
     //OutputSurface[DTid.xy] = PointPosData[DTid.y * 256 + DTid.x];
-    OutputSurface[DTid.xy] = float4(1.f, 1.f, 1.f, 1.f);
+    //PointPosData[XY.y * CSVariables.g_iHeight + XY.x] = float4(0, 0, 1, 1);
+    //OutputSurface[DTid.xy] = float4(0.f, 0.f, 1.f, 1.f);
 
 }
