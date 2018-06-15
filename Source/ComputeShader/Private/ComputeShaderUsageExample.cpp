@@ -50,6 +50,9 @@ FComputeShaderUsageExample::FComputeShaderUsageExample(float SimulationSpeed, in
 	CreateInfo.ResourceArray = &PointPosData;
 	Buffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
 	BufferUAV = RHICreateUnorderedAccessView(Buffer, false, false);
+
+	Buffer2 = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
+	BufferUAV2 = RHICreateUnorderedAccessView(Buffer, false, false);
 }
 
 FComputeShaderUsageExample::~FComputeShaderUsageExample()
@@ -121,8 +124,10 @@ void FComputeShaderUsageExample::ParallelBitonicSort(FRHICommandListImmediate & 
 	CreateInfo.ResourceArray = &PointPosData;
 	Buffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
 	BufferUAV = RHICreateUnorderedAccessView(Buffer, false, false);
-	ComputeShader->SetPointPosData(RHICmdList, BufferUAV);
-	//ComputeShaderTranspose->SetPointPosData(RHICmdList, BufferUAV);
+	Buffer2 = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
+	BufferUAV2 = RHICreateUnorderedAccessView(Buffer2, false, false);
+	ComputeShader->SetPointPosData(RHICmdList, BufferUAV, BufferUAV2);
+	ComputeShaderTranspose->SetPointPosData(RHICmdList, BufferUAV, BufferUAV2);
 
 
 	//VariableParameters.g_iLevel = 512 / BITONIC_BLOCK_SIZE;

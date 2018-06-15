@@ -88,11 +88,13 @@ private:
 	/** Main texture */
 	FTexture2DRHIRef Texture;
 	FStructuredBufferRHIParamRef Buffer;
+	FStructuredBufferRHIParamRef Buffer2;
 
 	TResourceArray<FVector4> PointPosData;
 
 	/** We need a UAV if we want to be able to write to the resource*/
 	FUnorderedAccessViewRHIRef TextureUAV;
 	FUnorderedAccessViewRHIRef BufferUAV;
+	FUnorderedAccessViewRHIRef BufferUAV2;
 
 };
