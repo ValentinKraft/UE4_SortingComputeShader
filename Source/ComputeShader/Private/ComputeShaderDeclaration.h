@@ -36,7 +36,7 @@ END_UNIFORM_BUFFER_STRUCT(FComputeShaderConstantParameters)
 
 //This buffer is for variables that change very often (each frame for example)
 BEGIN_UNIFORM_BUFFER_STRUCT(FComputeShaderVariableParameters, )
-DECLARE_UNIFORM_BUFFER_STRUCT_MEMBER(float, TotalTimeElapsedSeconds)
+DECLARE_UNIFORM_BUFFER_STRUCT_MEMBER(FVector4, CurrentCamPos)
 DECLARE_UNIFORM_BUFFER_STRUCT_MEMBER(int, g_iLevel)
 DECLARE_UNIFORM_BUFFER_STRUCT_MEMBER(int, g_iLevelMask)
 DECLARE_UNIFORM_BUFFER_STRUCT_MEMBER(int, g_iWidth)

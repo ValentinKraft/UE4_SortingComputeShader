@@ -47,9 +47,9 @@ public:
 
 	/************************************************************************/
 	/* Run this to execute the compute shader once!                         */
-	/* @param TotalElapsedTimeSeconds - We use this for simulation state    */
+	/* @param currentCamPos - The current camera position ! in object space ! of the point cloud proxy mesh.  */
 	/************************************************************************/
-	void ExecuteComputeShader(float TotalElapsedTimeSeconds);
+	void ExecuteComputeShader(FVector4 currentCamPos);
 
 	/************************************************************************/
 	/* Only execute this from the render thread!!!                          */

@@ -60,7 +60,7 @@ FComputeShaderUsageExample::~FComputeShaderUsageExample()
 	bIsUnloading = true;
 }
 
-void FComputeShaderUsageExample::ExecuteComputeShader(float TotalElapsedTimeSeconds)
+void FComputeShaderUsageExample::ExecuteComputeShader(FVector4 currentCamPos)
 {
 	if (bIsUnloading || bIsComputeShaderExecuting) //Skip this execution round if we are already executing
 		return;
@@ -68,7 +68,7 @@ void FComputeShaderUsageExample::ExecuteComputeShader(float TotalElapsedTimeSeco
 	bIsComputeShaderExecuting = true;
 
 	//Now set our runtime parameters!
-	VariableParameters.TotalTimeElapsedSeconds = TotalElapsedTimeSeconds;
+	VariableParameters.CurrentCamPos = currentCamPos;
 
 	//This macro sends the function we declare inside to be run on the render thread. What we do is essentially just send this class and tell the render thread to run the internal render function as soon as it can.
 	//I am still not 100% Certain on the thread safety of this, if you are getting crashes, depending on how advanced code you have in the start of the ExecutePixelShader function, you might have to use a lock :)
