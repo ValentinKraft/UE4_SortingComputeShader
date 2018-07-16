@@ -37,7 +37,7 @@ void MainComputeShader(uint3 Gid : SV_GroupID,             //atm: -, 0...256, - 
 	//Set up some variables we are going to need
     float sizeX, sizeY;
     OutputSurface.GetDimensions(sizeX, sizeY);
-    float4 camPos = CSVariables.CurrentCamPos; // #Temp - mind mapping: Z/X/Y!
+    float3 camPos = CSVariables.CurrentCamPos;
     
     // Load initial data - mind mapping: Z/X/Y/Z!
     shared_data[GI] = PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x];
@@ -49,7 +49,17 @@ void MainComputeShader(uint3 Gid : SV_GroupID,             //atm: -, 0...256, - 
     {
         float3 pos1 = shared_data[GI & ~j];
         float3 pos2 = shared_data[GI | j];
-        float4 result = ((distance(pos1, camPos.zxy) >= distance(pos2, camPos.zxy)) == (bool) (CSVariables.g_iLevelMask & DTid.x)) ? shared_data[GI ^ j] : shared_data[GI];
+
+        float dist1 = distance(pos1.gbr, camPos.xyz);
+        float dist2 = distance(pos2.gbr, camPos.xyz);
+
+        // Ignore invalid (zero) values
+        if (pos1.g == 0 && pos1.b == 0 && pos1.r == 0)
+            dist1 = -dist1;
+        if (pos2.g == 0 && pos2.b == 0 && pos2.r == 0)
+            dist2 = -dist2;
+
+        float4 result = ((dist1 >= dist2) == (bool) (CSVariables.g_iLevelMask & DTid.x)) ? shared_data[GI ^ j] : shared_data[GI];
         GroupMemoryBarrierWithGroupSync();
         shared_data[GI] = result;
         GroupMemoryBarrierWithGroupSync();
