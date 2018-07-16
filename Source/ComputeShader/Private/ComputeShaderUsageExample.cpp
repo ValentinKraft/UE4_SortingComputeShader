@@ -45,7 +45,8 @@ FComputeShaderUsageExample::FComputeShaderUsageExample(float SimulationSpeed, in
 	Texture = RHICreateTexture2D(SizeX, SizeY, PF_A32B32G32R32F, 1, 1, TexCreate_ShaderResource | TexCreate_UAV, CreateInfo);
 	TextureUAV = RHICreateUnorderedAccessView(Texture);
 
-	PointPosData.Init(FVector4(0.f, 0.f, 0.f, 1.f), NUM_ELEMENTS);
+	// Initialise with invalid values
+	PointPosData.Init(FVector4(-1.f, -1.f, -1.f, -1.f), NUM_ELEMENTS);
 
 	CreateInfo.ResourceArray = &PointPosData;
 	Buffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);

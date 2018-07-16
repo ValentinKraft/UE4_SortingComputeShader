@@ -54,9 +54,9 @@ void MainComputeShader(uint3 Gid : SV_GroupID,             //atm: -, 0...256, - 
         float dist2 = distance(pos2.gbr, camPos.xyz);
 
         // Ignore invalid (zero) values
-        if (pos1.g == 0 && pos1.b == 0 && pos1.r == 0)
+        if (pos1.g == -1 && pos1.b == -1 && pos1.r == -1)
             dist1 = -dist1;
-        if (pos2.g == 0 && pos2.b == 0 && pos2.r == 0)
+        if (pos2.g == -1 && pos2.b == -1 && pos2.r == -1)
             dist2 = -dist2;
 
         float4 result = ((dist1 >= dist2) == (bool) (CSVariables.g_iLevelMask & DTid.x)) ? shared_data[GI ^ j] : shared_data[GI];
