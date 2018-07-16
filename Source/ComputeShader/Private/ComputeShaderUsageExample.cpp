@@ -96,6 +96,10 @@ void FComputeShaderUsageExample::ExecuteComputeShaderInternal()
 			BufferUAV.SafeRelease();
 			BufferUAV = NULL;
 		}
+		if (NULL != BufferUAV2) {
+			BufferUAV2.SafeRelease();
+			BufferUAV2 = NULL;
+		}
 		return;
 	}
 	
@@ -124,22 +128,12 @@ void FComputeShaderUsageExample::ParallelBitonicSort(FRHICommandListImmediate & 
 	CreateInfo.ResourceArray = &PointPosData;
 	Buffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
 	BufferUAV = RHICreateUnorderedAccessView(Buffer, false, false);
-	Buffer2 = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
-	BufferUAV2 = RHICreateUnorderedAccessView(Buffer2, false, false);
+
+	const uint32 cl[4] = { 0,0,0,1 };
+	RHICmdList.ClearTinyUAV(BufferUAV2, cl);
+	
 	ComputeShader->SetPointPosData(RHICmdList, BufferUAV, BufferUAV2);
-	ComputeShaderTranspose->SetPointPosData(RHICmdList, BufferUAV, BufferUAV2);
-
-
-	//VariableParameters.g_iLevel = 512 / BITONIC_BLOCK_SIZE;
-	//VariableParameters.g_iLevelMask = (512 & ~NUM_ELEMENTS) / BITONIC_BLOCK_SIZE;
-	//VariableParameters.g_iHeight = MATRIX_HEIGHT;
-	//VariableParameters.g_iWidth = MATRIX_WIDTH;
-	//ComputeShaderTranspose->SetUniformBuffers(RHICmdList, ConstantParameters, VariableParameters);
-	//ComputeShaderTranspose->SetSurfaces(RHICmdList, TextureUAV);
-
-	//// Transpose the data from buffer 1 into buffer 2
-	//RHICmdList.SetComputeShader(ComputeShaderTranspose->GetComputeShader());
-	//DispatchComputeShader(RHICmdList, *ComputeShaderTranspose, 1, NUM_ELEMENTS / BITONIC_BLOCK_SIZE, 1);
+	//ComputeShaderTranspose->SetPointPosData(RHICmdList, BufferUAV, BufferUAV2);
 
 	/////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////

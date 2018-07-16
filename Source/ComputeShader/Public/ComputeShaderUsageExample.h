@@ -26,13 +26,11 @@
 
 #include "Private/ComputeShaderDeclaration.h"
 
-
 const UINT NUM_ELEMENTS = 256 * 256;
 const UINT BITONIC_BLOCK_SIZE = 256;
 const UINT TRANSPOSE_BLOCK_SIZE = 8;
 const UINT MATRIX_WIDTH = BITONIC_BLOCK_SIZE;
 const UINT MATRIX_HEIGHT = NUM_ELEMENTS / BITONIC_BLOCK_SIZE;
-
 
 /***************************************************************************/
 /* This class demonstrates how to use the compute shader we have declared. */
