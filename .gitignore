@@ -1,5 +1,11 @@
-/Binaries
+/ComputeShader/Binaries
 
-/Intermediate
+/ComputeShader/Intermediate
+/PixelShader/Binaries
+
+/PixelShader/Intermediate
+/GPUPointCloudRenderer
+/PointCloudRenderer
 
 *.lib
+*.rar
