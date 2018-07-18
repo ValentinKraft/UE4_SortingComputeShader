@@ -34,9 +34,7 @@ void MainComputeShader(uint3 Gid : SV_GroupID,             //atm: -, 0...256, - 
                        uint3 GTid : SV_GroupThreadID,      //atm: 0...256, -,- in columns (X)      --> current threadId in group / "local" threadId
                        uint GI : SV_GroupIndex)            //atm: 0...256 in columns (X)           --> "flattened" index of a thread within a group
 {
-	//Set up some variables we are going to need
-    float sizeX, sizeY;
-    OutputSurface.GetDimensions(sizeX, sizeY);
+	// Get current camera position
     float3 camPos = CSVariables.CurrentCamPos;
     
     // Load initial data - mind mapping: Z/X/Y/Z!
