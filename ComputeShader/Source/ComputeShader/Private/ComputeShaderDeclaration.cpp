@@ -147,8 +147,8 @@ void FComputeShaderTransposeDeclaration::UnbindBuffers(FRHICommandList& RHICmdLi
 
 //This is what will instantiate the shader into the engine from the engine/Shaders folder
 //                      ShaderType                    ShaderFileName                Shader function name       Type
-IMPLEMENT_SHADER_TYPE(, FComputeShaderDeclaration, TEXT("/Plugin/ComputeShader/Private/ComputeShaderExample.usf"), TEXT("MainComputeShader"), SF_Compute);
-IMPLEMENT_SHADER_TYPE(, FComputeShaderTransposeDeclaration, TEXT("/Plugin/ComputeShader/Private/ComputeShaderExample.usf"), TEXT("TransposeMatrix"), SF_Compute);
+IMPLEMENT_SHADER_TYPE(, FComputeShaderDeclaration, TEXT("/Plugin/ComputeShader/Private/BitonicSortingKernelComputeShader.usf"), TEXT("MainComputeShader"), SF_Compute);
+IMPLEMENT_SHADER_TYPE(, FComputeShaderTransposeDeclaration, TEXT("/Plugin/ComputeShader/Private/BitonicSortingKernelComputeShader.usf"), TEXT("TransposeMatrix"), SF_Compute);
 
 //This is required for the plugin to build :)
 IMPLEMENT_MODULE(FDefaultModuleImpl, ComputeShader)
