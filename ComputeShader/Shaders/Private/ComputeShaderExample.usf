@@ -1,0 +1,99 @@
+//Since we can't #include private Engine shaders such as Common.ush we have to copy the needed Shaders from the Engine' Shader directory.
+//When this gets chaned in the future, we could change this to #include "/Engine/Private/Common.ush".
+#include "/Engine/Private/Common.ush"
+
+////////////////////////////
+// Bitonic Sort
+// Compute Shader
+// by Valentin Kraft 
+///
+// Inspired by the ComputeShaderSort11
+// example by Microsoft. 
+///////////////////////////// 
+
+#define BITONIC_BLOCK_SIZE 256
+#define TRANSPOSE_BLOCK_SIZE 8
+
+//--------------------------------------------------------------------------------------
+// Constant Buffers
+//--------------------------------------------------------------------------------------
+
+RWTexture2D<float4> OutputSurface : register(u1); //UAV Texture
+RWStructuredBuffer<float4> PointPosData : register(u0);
+RWStructuredBuffer<float4> Input : register(u2);
+
+// Thread group shared memory limit (DX11): 32KB --> 2048 float4 values --> 32 thread groups optimum --> 1024 Threads optimum (?)
+// Only shared within a thread group!
+groupshared float4 shared_data[BITONIC_BLOCK_SIZE];
+
+// In order to make full use of the resources of the GPU, there should be at least as many thread groups as there are multiprocessors on the GPU, and ideally two or more #ToDo: Make dynamic
+// Max number of threads in a group (DX11): 1024
+[numthreads(BITONIC_BLOCK_SIZE, 1, 1)]
+void MainComputeShader(uint3 Gid : SV_GroupID,             //atm: -, 0...256, - in rows (Y)        --> current group index (dispatched by c++)
+                       uint3 DTid : SV_DispatchThreadID,   //atm: 0...256 in rows & columns (XY)   --> "global" thread id
+                       uint3 GTid : SV_GroupThreadID,      //atm: 0...256, -,- in columns (X)      --> current threadId in group / "local" threadId
+                       uint GI : SV_GroupIndex)            //atm: 0...256 in columns (X)           --> "flattened" index of a thread within a group
+{
+	// Get Current Camera Position
+    float3 camPos = CSVariables.CurrentCamPos;
+    
+    // Load initial data - mind mapping: Z/X/Y/Z!
+    shared_data[GI] = PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x];
+    GroupMemoryBarrierWithGroupSync();
+
+
+    // Now each thread must pick the min or max of the two elements it is comparing. The thread cannot compare and swap both elements because that would require random access writes.
+    for (unsigned int j = CSVariables.g_iLevel >> 1; j > 0; j >>= 1)
+    {
+        float3 pos1 = shared_data[GI & ~j];
+        float3 pos2 = shared_data[GI | j];
+
+        float dist1 = distance(pos1.gbr, camPos.xyz);
+        float dist2 = distance(pos2.gbr, camPos.xyz);
+
+        // Ignore invalid (zero) values
+        if (pos1.g == -1 && pos1.b == -1 && pos1.r == -1)
+            dist1 = -dist1;
+        if (pos2.g == -1 && pos2.b == -1 && pos2.r == -1)
+            dist2 = -dist2;
+
+        float4 result = ((dist1 >= dist2) == (bool) (CSVariables.g_iLevelMask & DTid.x)) ? shared_data[GI ^ j] : shared_data[GI];
+        GroupMemoryBarrierWithGroupSync();
+        shared_data[GI] = result;
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    // Update buffers with sorted values
+    PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x] = shared_data[GI];
+    Input[DTid.y * BITONIC_BLOCK_SIZE + DTid.x] = shared_data[GI];
+    GroupMemoryBarrierWithGroupSync();
+
+    // Display all threads
+    //if (CSVariables.g_iLevelMask == 512)
+    //    OutputSurface[DTid.xy] = float4(float3(DTid.xy, 0), 0) / 256.0f;
+
+    // Update output texture at the end
+    if (CSVariables.g_iLevelMask == BITONIC_BLOCK_SIZE * BITONIC_BLOCK_SIZE)
+    {
+        OutputSurface[DTid.xy] = PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x];
+        GroupMemoryBarrierWithGroupSync();
+    }
+}
+
+//--------------------------------------------------------------------------------------
+// Matrix Transpose Compute Shader
+//--------------------------------------------------------------------------------------
+groupshared float4 transpose_shared_data[TRANSPOSE_BLOCK_SIZE * TRANSPOSE_BLOCK_SIZE];
+
+[numthreads(TRANSPOSE_BLOCK_SIZE, TRANSPOSE_BLOCK_SIZE, 1)]
+void TransposeMatrix(uint3 Gid : SV_GroupID,
+                     uint3 DTid : SV_DispatchThreadID,
+                     uint3 GTid : SV_GroupThreadID,
+                     uint GI : SV_GroupIndex)
+{
+    transpose_shared_data[GI] = Input[DTid.y * CSVariables.g_iWidth + DTid.x];
+    GroupMemoryBarrierWithGroupSync();
+
+    uint2 XY = DTid.yx - GTid.yx + GTid.xy;
+    PointPosData[XY.y * CSVariables.g_iHeight + XY.x] = transpose_shared_data[GTid.x * TRANSPOSE_BLOCK_SIZE + GTid.y];
+}
