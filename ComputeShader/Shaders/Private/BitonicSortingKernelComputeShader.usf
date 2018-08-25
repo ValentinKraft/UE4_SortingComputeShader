@@ -5,11 +5,11 @@
 ////////////////////////////
 // Bitonic Sort
 // Compute Shader
-// by Valentin Kraft 
-///
+// by Valentin Kraft
+//
 // Inspired by the ComputeShaderSort11
-// example by Microsoft. 
-///////////////////////////// 
+// example by Microsoft (https://code.msdn.microsoft.com/windowsdesktop/DirectCompute-Basic-Win32-7d5a7408)
+/////////////////////////////
 
 #define BITONIC_BLOCK_SIZE 1024
 #define TRANSPOSE_BLOCK_SIZE 16
@@ -18,7 +18,7 @@
 // Constant Buffers
 //--------------------------------------------------------------------------------------
 
-RWTexture2D<float4> OutputSurface : register(u1); //UAV Texture
+RWTexture2D<float4> OutputSurface : register(u1);           //UAV Texture
 RWStructuredBuffer<float4> PointPosData : register(u0);
 RWStructuredBuffer<float4> Input : register(u2);
 
