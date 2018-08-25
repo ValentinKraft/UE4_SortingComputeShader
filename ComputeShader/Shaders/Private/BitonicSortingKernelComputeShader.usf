@@ -11,8 +11,8 @@
 // example by Microsoft. 
 ///////////////////////////// 
 
-#define BITONIC_BLOCK_SIZE 256
-#define TRANSPOSE_BLOCK_SIZE 8
+#define BITONIC_BLOCK_SIZE 1024
+#define TRANSPOSE_BLOCK_SIZE 16
 
 //--------------------------------------------------------------------------------------
 // Constant Buffers
