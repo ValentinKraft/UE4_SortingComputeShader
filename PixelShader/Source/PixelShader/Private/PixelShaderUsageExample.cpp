@@ -30,7 +30,7 @@
 //It kind of makes sense since they do not contain any parameters that change and are purely used as their names suggest, as declarations :)
 TGlobalResource<FTextureVertexDeclaration> GTextureVertexDeclaration;
 
-FPixelShaderUsageExample::FPixelShaderUsageExample(FColor StartColor, ERHIFeatureLevel::Type ShaderFeatureLevel)
+FPixelShader::FPixelShader(FColor StartColor, ERHIFeatureLevel::Type ShaderFeatureLevel)
 {
 	FeatureLevel = ShaderFeatureLevel;
 
@@ -49,12 +49,12 @@ FPixelShaderUsageExample::FPixelShaderUsageExample(FColor StartColor, ERHIFeatur
 	TextureParameterSRV = NULL;
 }
 
-FPixelShaderUsageExample::~FPixelShaderUsageExample()
+FPixelShader::~FPixelShader()
 {
 	bIsUnloading = true;
 }
 
-void FPixelShaderUsageExample::ExecutePixelShader(UTextureRenderTarget2D* RenderTarget, FTexture2DRHIRef InputTexture, FColor EndColor, float TextureParameterBlendFactor)
+void FPixelShader::ExecutePixelShader(UTextureRenderTarget2D* RenderTarget, FTexture2DRHIRef InputTexture, FColor EndColor, float TextureParameterBlendFactor)
 {
 	check(IsInGameThread());
 
@@ -80,14 +80,14 @@ void FPixelShaderUsageExample::ExecutePixelShader(UTextureRenderTarget2D* Render
 	//I am still not 100% Certain on the thread safety of this, if you are getting crashes, depending on how advanced code you have in the start of the ExecutePixelShader function, you might have to use a lock :)
 	ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(
 		FPixelShaderRunner,
-		FPixelShaderUsageExample*, PixelShader, this,
+		FPixelShader*, PixelShader, this,
 		{
 			PixelShader->ExecutePixelShaderInternal();
 		}
 	);
 }
 
-void FPixelShaderUsageExample::ExecutePixelShaderInternal()
+void FPixelShader::ExecutePixelShaderInternal()
 {
 	check(IsInRenderingThread());
 
@@ -192,7 +192,7 @@ void FPixelShaderUsageExample::ExecutePixelShaderInternal()
 	bIsPixelShaderExecuting = false;
 }
 
-void FPixelShaderUsageExample::SaveScreenshot(FRHICommandListImmediate& RHICmdList)
+void FPixelShader::SaveScreenshot(FRHICommandListImmediate& RHICmdList)
 {
 	check(IsInRenderingThread());
 

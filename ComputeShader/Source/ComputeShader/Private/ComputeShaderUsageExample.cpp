@@ -26,7 +26,7 @@
 
 //#define NUM_THREADS_PER_GROUP_DIMENSION 8 //This has to be the same as in the compute shader's spec [X, X, 1]
 
-FComputeShaderUsageExample::FComputeShaderUsageExample(float SimulationSpeed, int32 SizeX, int32 SizeY, ERHIFeatureLevel::Type ShaderFeatureLevel)
+FComputeShader::FComputeShader(float SimulationSpeed, int32 SizeX, int32 SizeY, ERHIFeatureLevel::Type ShaderFeatureLevel)
 {
 	FeatureLevel = ShaderFeatureLevel;
 	ConstantParameters.SimulationSpeed = SimulationSpeed;
@@ -56,12 +56,12 @@ FComputeShaderUsageExample::FComputeShaderUsageExample(float SimulationSpeed, in
 	BufferUAV2 = RHICreateUnorderedAccessView(Buffer, false, false);
 }
 
-FComputeShaderUsageExample::~FComputeShaderUsageExample()
+FComputeShader::~FComputeShader()
 {
 	bIsUnloading = true;
 }
 
-void FComputeShaderUsageExample::ExecuteComputeShader(FVector4 currentCamPos)
+void FComputeShader::ExecuteComputeShader(FVector4 currentCamPos)
 {
 	if (bIsUnloading || bIsComputeShaderExecuting) //Skip this execution round if we are already executing
 		return;
@@ -75,14 +75,14 @@ void FComputeShaderUsageExample::ExecuteComputeShader(FVector4 currentCamPos)
 	//I am still not 100% Certain on the thread safety of this, if you are getting crashes, depending on how advanced code you have in the start of the ExecutePixelShader function, you might have to use a lock :)
 	ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(
 		FComputeShaderRunner,
-		FComputeShaderUsageExample*, ComputeShader, this,
+		FComputeShader*, ComputeShader, this,
 		{
 		ComputeShader->ExecuteComputeShaderInternal();
 	}
 	);
 }
 
-void FComputeShaderUsageExample::ExecuteComputeShaderInternal()
+void FComputeShader::ExecuteComputeShaderInternal()
 {
 	check(IsInRenderingThread());
 	
@@ -114,7 +114,7 @@ void FComputeShaderUsageExample::ExecuteComputeShaderInternal()
 	bIsComputeShaderExecuting = false;
 }
 
-void FComputeShaderUsageExample::ParallelBitonicSort(FRHICommandListImmediate & RHICmdList)
+void FComputeShader::ParallelBitonicSort(FRHICommandListImmediate & RHICmdList)
 {	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// Parallel Bitonic Sort, adapted from https://code.msdn.microsoft.com/windowsdesktop/DirectCompute-Basic-Win32-7d5a7408
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -190,7 +190,7 @@ void FComputeShaderUsageExample::ParallelBitonicSort(FRHICommandListImmediate & 
 	ComputeShader->UnbindBuffers(RHICmdList);
 }
 
-void FComputeShaderUsageExample::SaveScreenshot(FRHICommandListImmediate& RHICmdList)
+void FComputeShader::SaveScreenshot(FRHICommandListImmediate& RHICmdList)
 {
 	TArray<FColor> Bitmap;
 

@@ -37,11 +37,11 @@ const UINT MATRIX_HEIGHT = NUM_ELEMENTS / BITONIC_BLOCK_SIZE;
 /* Most importantly which RHI functions are needed to call and how to get  */
 /* some interesting output.                                                */
 /***************************************************************************/
-class COMPUTESHADER_API FComputeShaderUsageExample
+class COMPUTESHADER_API FComputeShader
 {
 public:
-	FComputeShaderUsageExample(float SimulationSpeed, int32 SizeX, int32 SizeY, ERHIFeatureLevel::Type ShaderFeatureLevel);
-	~FComputeShaderUsageExample();
+	FComputeShader(float SimulationSpeed, int32 SizeX, int32 SizeY, ERHIFeatureLevel::Type ShaderFeatureLevel);
+	~FComputeShader();
 
 	/************************************************************************/
 	/* Run this to execute the compute shader once!                         */

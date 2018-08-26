@@ -31,11 +31,11 @@
 /* Most importantly which RHI functions are needed to call and how to get  */
 /* some interesting output.                                                */
 /***************************************************************************/
-class PIXELSHADER_API FPixelShaderUsageExample
+class PIXELSHADER_API FPixelShader
 {
 public:
-	FPixelShaderUsageExample(FColor StartColor, ERHIFeatureLevel::Type ShaderFeatureLevel);
-	~FPixelShaderUsageExample();
+	FPixelShader(FColor StartColor, ERHIFeatureLevel::Type ShaderFeatureLevel);
+	~FPixelShader();
 
 	/********************************************************************************************************/
 	/* Let the user change rendertarget during runtime if they want to :D                                   */
