@@ -93,17 +93,17 @@ private:
 	/** Main texture */
 	FTexture2DRHIRef m_SortedPointPosTex;
 	FTexture2DRHIRef m_SortedPointColorsTex;
-	FStructuredBufferRHIParamRef Buffer;
-	FStructuredBufferRHIParamRef Buffer2;
-	FStructuredBufferRHIParamRef Buffer3;
+	FStructuredBufferRHIParamRef m_SortedPointPosBuffer;
+	//FStructuredBufferRHIParamRef Buffer2;
+	//FStructuredBufferRHIParamRef Buffer3;
 
 	TResourceArray<FVector4> PointPosData;
 	TResourceArray<FVector4> PointColorData;
 
 	/** We need a UAV if we want to be able to write to the resource*/
-	FUnorderedAccessViewRHIRef m_SortedPointPosTexUAV;
-	FUnorderedAccessViewRHIRef BufferUAV;
-	FUnorderedAccessViewRHIRef BufferUAV2;
-	FUnorderedAccessViewRHIRef BufferUAV3;
+	FUnorderedAccessViewRHIRef m_SortedPointPosTex_UAV;
+	FUnorderedAccessViewRHIRef m_SortedPointPosBuffer_UAV;
+	FUnorderedAccessViewRHIRef m_SortedPointPosBuffer_UAV2;
+	FUnorderedAccessViewRHIRef m_SortedPointColorsTex_UAV;
 
 };
