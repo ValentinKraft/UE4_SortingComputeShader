@@ -72,6 +72,7 @@ public:
 		Ar << OutputSurface;
 		Ar << PointPosData;
 		Ar << Input;
+		Ar << PointColorTexture;
 
 		return bShaderHasOutdatedParams;
 	}
@@ -80,6 +81,7 @@ public:
 	void SetSurfaces(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef OutputSurfaceUAV);
 	//Set the point position data
 	void SetPointPosData(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV, FUnorderedAccessViewRHIRef BufferUAV2);
+	void SetPointColorTexture(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV);
 	//This function is required to bind our constant / uniform buffers to the shader.
 	void SetUniformBuffers(FRHICommandList& RHICmdList, FComputeShaderConstantParameters& ConstantParameters, FComputeShaderVariableParameters& VariableParameters);
 	//This is used to clean up the buffer binds after each invocation to let them be changed and used elsewhere if needed.
@@ -90,6 +92,7 @@ private:
 	FShaderResourceParameter OutputSurface;
 	FShaderResourceParameter PointPosData;
 	FShaderResourceParameter Input;
+	FShaderResourceParameter PointColorTexture;
 };
 
 
@@ -111,15 +114,12 @@ public:
 	{
 		bool bShaderHasOutdatedParams = FGlobalShader::Serialize(Ar);
 
-		Ar << OutputSurface;
 		Ar << PointPosData;
 		Ar << Input;
 
 		return bShaderHasOutdatedParams;
 	}
 
-	//This function is required to let us bind our runtime surface to the shader using an UAV.
-	void SetSurfaces(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef OutputSurfaceUAV);
 	//Set the point position data
 	void SetPointPosData(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV, FUnorderedAccessViewRHIRef BufferUAV2);
 	//This function is required to bind our constant / uniform buffers to the shader.
@@ -129,7 +129,6 @@ public:
 
 private:
 	//This is the actual output resource that we will bind to the compute shader
-	FShaderResourceParameter OutputSurface;
 	FShaderResourceParameter PointPosData;
 	FShaderResourceParameter Input;
 };

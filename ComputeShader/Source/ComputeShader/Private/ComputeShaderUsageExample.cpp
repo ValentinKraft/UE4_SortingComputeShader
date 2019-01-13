@@ -42,17 +42,21 @@ FComputeShader::FComputeShader(float SimulationSpeed, int32 SizeX, int32 SizeY, 
     //http://www.gamedev.net/topic/605356-r8g8b8a8-texture-format-in-compute-shader/
 	//https://msdn.microsoft.com/en-us/library/ff728749(v=vs.85).aspx
 	FRHIResourceCreateInfo CreateInfo;
-	Texture = RHICreateTexture2D(SizeX, SizeY, PF_A32B32G32R32F, 1, 1, TexCreate_ShaderResource | TexCreate_UAV, CreateInfo);
-	TextureUAV = RHICreateUnorderedAccessView(Texture);
+	m_SortedPointPosTex = RHICreateTexture2D(SizeX, SizeY, PF_A32B32G32R32F, 1, 1, TexCreate_ShaderResource | TexCreate_UAV, CreateInfo);
+	m_SortedPointPosTexUAV = RHICreateUnorderedAccessView(m_SortedPointPosTex);
+
+	m_SortedPointColorsTex = RHICreateTexture2D(SizeX, SizeY, PF_A32B32G32R32F, 1, 1, TexCreate_ShaderResource | TexCreate_UAV, CreateInfo);
+	BufferUAV3 = RHICreateUnorderedAccessView(m_SortedPointColorsTex);
 
 	// Initialise with invalid values
 	PointPosData.Init(FVector4(-1.f, -1.f, -1.f, -1.f), NUM_ELEMENTS);
+	PointColorData.Init(FVector4(1.f, 0.f, 0.f, 1.f), NUM_ELEMENTS);
 
 	CreateInfo.ResourceArray = &PointPosData;
 	Buffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
 	BufferUAV = RHICreateUnorderedAccessView(Buffer, false, false);
 
-	Buffer2 = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
+	//Buffer2 = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
 	BufferUAV2 = RHICreateUnorderedAccessView(Buffer, false, false);
 }
 
@@ -88,10 +92,15 @@ void FComputeShader::ExecuteComputeShaderInternal()
 	
 	if (bIsUnloading) //If we are about to unload, so just clean up the UAV :)
 	{
-		if (NULL != TextureUAV)
+		if (NULL != m_SortedPointPosTexUAV)
 		{
-			TextureUAV.SafeRelease();
-			TextureUAV = NULL;
+			m_SortedPointPosTexUAV.SafeRelease();
+			m_SortedPointPosTexUAV = NULL;
+		}
+		if (NULL != BufferUAV3)
+		{
+			BufferUAV3.SafeRelease();
+			BufferUAV3 = NULL;
 		}
 		if (NULL != BufferUAV) {
 			BufferUAV.SafeRelease();
@@ -134,7 +143,6 @@ void FComputeShader::ParallelBitonicSort(FRHICommandListImmediate & RHICmdList)
 	RHICmdList.ClearTinyUAV(BufferUAV2, cl);
 	
 	ComputeShader->SetPointPosData(RHICmdList, BufferUAV, BufferUAV2);
-	//ComputeShaderTranspose->SetPointPosData(RHICmdList, BufferUAV, BufferUAV2);
 
 	/////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////
@@ -149,7 +157,8 @@ void FComputeShader::ParallelBitonicSort(FRHICommandListImmediate & RHICmdList)
 		ComputeShader->SetUniformBuffers(RHICmdList, ConstantParameters, VariableParameters);
 
 		// Sort the row data
-		ComputeShader->SetSurfaces(RHICmdList, TextureUAV);
+		ComputeShader->SetSurfaces(RHICmdList, m_SortedPointPosTexUAV);
+		ComputeShader->SetPointColorTexture(RHICmdList, BufferUAV3);
 		RHICmdList.SetComputeShader(ComputeShader->GetComputeShader());
 		DispatchComputeShader(RHICmdList, *ComputeShader, 1, NUM_ELEMENTS / BITONIC_BLOCK_SIZE, 1);
 	}
@@ -183,7 +192,8 @@ void FComputeShader::ParallelBitonicSort(FRHICommandListImmediate & RHICmdList)
 
 		// Sort the row data
 		ComputeShader->SetUniformBuffers(RHICmdList, ConstantParameters, VariableParameters);
-		ComputeShader->SetSurfaces(RHICmdList, TextureUAV);
+		ComputeShader->SetSurfaces(RHICmdList, m_SortedPointPosTexUAV);
+		ComputeShader->SetPointColorTexture(RHICmdList, BufferUAV3);
 		RHICmdList.SetComputeShader(ComputeShader->GetComputeShader());
 		DispatchComputeShader(RHICmdList, *ComputeShader, 1, NUM_ELEMENTS / BITONIC_BLOCK_SIZE, 1);
 	}
@@ -196,14 +206,14 @@ void FComputeShader::SaveScreenshot(FRHICommandListImmediate& RHICmdList)
 
 	//To access our resource we do a custom read using lockrect
 	uint32 LolStride = 0;
-	char* TextureDataPtr = (char*)RHICmdList.LockTexture2D(Texture, 0, EResourceLockMode::RLM_ReadOnly, LolStride, false);
+	char* TextureDataPtr = (char*)RHICmdList.LockTexture2D(m_SortedPointPosTex, 0, EResourceLockMode::RLM_ReadOnly, LolStride, false);
 
-	for (uint32 Row = 0; Row < Texture->GetSizeY(); ++Row)
+	for (uint32 Row = 0; Row < m_SortedPointPosTex->GetSizeY(); ++Row)
 	{
 		uint32* PixelPtr = (uint32*)TextureDataPtr;
 		
 		//Since we are using our custom UINT format, we need to unpack it here to access the actual colors
-		for (uint32 Col = 0; Col < Texture->GetSizeX(); ++Col)
+		for (uint32 Col = 0; Col < m_SortedPointPosTex->GetSizeX(); ++Col)
 		{
 			uint32 EncodedPixel = *PixelPtr;
 			uint8 r = (EncodedPixel & 0x000000FF);
@@ -219,7 +229,7 @@ void FComputeShader::SaveScreenshot(FRHICommandListImmediate& RHICmdList)
 		TextureDataPtr += LolStride;
 	}
 
-	RHICmdList.UnlockTexture2D(Texture, 0, false);
+	RHICmdList.UnlockTexture2D(m_SortedPointPosTex, 0, false);
 
 	// if the format and texture type is supported
 	if (Bitmap.Num())
@@ -229,10 +239,10 @@ void FComputeShader::SaveScreenshot(FRHICommandListImmediate& RHICmdList)
 
 		const FString ScreenFileName(FPaths::ScreenShotDir() / TEXT("VisualizeTexture"));
 
-		uint32 ExtendXWithMSAA = Bitmap.Num() / Texture->GetSizeY();
+		uint32 ExtendXWithMSAA = Bitmap.Num() / m_SortedPointPosTex->GetSizeY();
 
 		// Save the contents of the array to a bitmap file. (24bit only so alpha channel is dropped)
-		FFileHelper::CreateBitmap(*ScreenFileName, ExtendXWithMSAA, Texture->GetSizeY(), Bitmap.GetData());
+		FFileHelper::CreateBitmap(*ScreenFileName, ExtendXWithMSAA, m_SortedPointPosTex->GetSizeY(), Bitmap.GetData());
 
 		UE_LOG(LogConsoleResponse, Display, TEXT("Content was saved to \"%s\""), *FPaths::ScreenShotDir());
 	}
