@@ -34,11 +34,11 @@ IMPLEMENT_UNIFORM_BUFFER_STRUCT(FComputeShaderVariableParameters, TEXT("CSVariab
 FComputeShaderDeclaration::FComputeShaderDeclaration(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 : FGlobalShader(Initializer)
 {
-	//This call is what lets the shader system know that the surface OutputSurface is going to be available in the shader. The second parameter is the name it will be known by in the shader
-	OutputSurface.Bind(Initializer.ParameterMap, TEXT("OutputSurface"));
+	//This call is what lets the shader system know that the surface OutputTexture is going to be available in the shader. The second parameter is the name it will be known by in the shader
+	OutputTexture.Bind(Initializer.ParameterMap, TEXT("OutputTexture"));
 	PointPosData.Bind(Initializer.ParameterMap, TEXT("PointPosData"));
-	Input.Bind(Initializer.ParameterMap, TEXT("Input"));
-	PointColorTexture.Bind(Initializer.ParameterMap, TEXT("PointColorsTexture"));
+	PointPosDataBuffer.Bind(Initializer.ParameterMap, TEXT("PointPosDataBuffer"));
+	OutputColorTexture.Bind(Initializer.ParameterMap, TEXT("OutputColorTexture"));
 }
 
 void FComputeShaderDeclaration::ModifyCompilationEnvironment(EShaderPlatform Platform, FShaderCompilerEnvironment& OutEnvironment)
@@ -47,12 +47,12 @@ void FComputeShaderDeclaration::ModifyCompilationEnvironment(EShaderPlatform Pla
 	OutEnvironment.CompilerFlags.Add(CFLAG_StandardOptimization);
 }
 
-void FComputeShaderDeclaration::SetSurfaces(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef OutputSurfaceUAV)
+void FComputeShaderDeclaration::SetOutputTexture(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef OutputSurfaceUAV)
 {
 	FComputeShaderRHIParamRef ComputeShaderRHI = GetComputeShader();
 
-	if (OutputSurface.IsBound())
-		RHICmdList.SetUAVParameter(ComputeShaderRHI, OutputSurface.GetBaseIndex(), OutputSurfaceUAV);
+	if (OutputTexture.IsBound())
+		RHICmdList.SetUAVParameter(ComputeShaderRHI, OutputTexture.GetBaseIndex(), OutputSurfaceUAV);
 }
 
 void FComputeShaderDeclaration::SetPointPosData(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV, FUnorderedAccessViewRHIRef BufferUAV2) {
@@ -61,16 +61,16 @@ void FComputeShaderDeclaration::SetPointPosData(FRHICommandList& RHICmdList, FUn
 
 	if (PointPosData.IsBound())
 		RHICmdList.SetUAVParameter(ComputeShaderRHI, PointPosData.GetBaseIndex(), BufferUAV);
-	if (Input.IsBound())
-		RHICmdList.SetUAVParameter(ComputeShaderRHI, Input.GetBaseIndex(), BufferUAV2);
+	if (PointPosDataBuffer.IsBound())
+		RHICmdList.SetUAVParameter(ComputeShaderRHI, PointPosDataBuffer.GetBaseIndex(), BufferUAV2);
 }
 
 void FComputeShaderDeclaration::SetPointColorTexture(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV) {
 
 	FComputeShaderRHIParamRef ComputeShaderRHI = GetComputeShader();
 
-	if (PointColorTexture.IsBound())
-		RHICmdList.SetUAVParameter(ComputeShaderRHI, PointColorTexture.GetBaseIndex(), BufferUAV);
+	if (OutputColorTexture.IsBound())
+		RHICmdList.SetUAVParameter(ComputeShaderRHI, OutputColorTexture.GetBaseIndex(), BufferUAV);
 }
 
 void FComputeShaderDeclaration::SetUniformBuffers(FRHICommandList& RHICmdList, FComputeShaderConstantParameters& ConstantParameters, FComputeShaderVariableParameters& VariableParameters)
@@ -90,10 +90,10 @@ void FComputeShaderDeclaration::UnbindBuffers(FRHICommandList& RHICmdList)
 {
 	FComputeShaderRHIParamRef ComputeShaderRHI = GetComputeShader();
 
-	if (OutputSurface.IsBound())
-		RHICmdList.SetUAVParameter(ComputeShaderRHI, OutputSurface.GetBaseIndex(), FUnorderedAccessViewRHIRef());
-	if (PointColorTexture.IsBound())
-		RHICmdList.SetUAVParameter(ComputeShaderRHI, PointColorTexture.GetBaseIndex(), FUnorderedAccessViewRHIRef());
+	if (OutputTexture.IsBound())
+		RHICmdList.SetUAVParameter(ComputeShaderRHI, OutputTexture.GetBaseIndex(), FUnorderedAccessViewRHIRef());
+	if (OutputColorTexture.IsBound())
+		RHICmdList.SetUAVParameter(ComputeShaderRHI, OutputColorTexture.GetBaseIndex(), FUnorderedAccessViewRHIRef());
 	if (PointPosData.IsBound())
 		RHICmdList.SetShaderResourceViewParameter(ComputeShaderRHI, PointPosData.GetBaseIndex(), FShaderResourceViewRHIParamRef());
 }
@@ -103,9 +103,9 @@ void FComputeShaderDeclaration::UnbindBuffers(FRHICommandList& RHICmdList)
 FComputeShaderTransposeDeclaration::FComputeShaderTransposeDeclaration(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 : FGlobalShader(Initializer)
 {
-	//This call is what lets the shader system know that the surface OutputSurface is going to be available in the shader. The second parameter is the name it will be known by in the shader
+	//This call is what lets the shader system know that the surface OutputTexture is going to be available in the shader. The second parameter is the name it will be known by in the shader
 	PointPosData.Bind(Initializer.ParameterMap, TEXT("PointPosData"));
-	Input.Bind(Initializer.ParameterMap, TEXT("Input"));
+	PointPosDataBuffer.Bind(Initializer.ParameterMap, TEXT("PointPosDataBuffer"));
 }
 
 void FComputeShaderTransposeDeclaration::ModifyCompilationEnvironment(EShaderPlatform Platform, FShaderCompilerEnvironment& OutEnvironment)
@@ -120,8 +120,8 @@ void FComputeShaderTransposeDeclaration::SetPointPosData(FRHICommandList& RHICmd
 
 	if (PointPosData.IsBound())
 		RHICmdList.SetUAVParameter(ComputeShaderRHI, PointPosData.GetBaseIndex(), BufferUAV);
-	if (Input.IsBound())
-		RHICmdList.SetUAVParameter(ComputeShaderRHI, Input.GetBaseIndex(), BufferUAV2);
+	if (PointPosDataBuffer.IsBound())
+		RHICmdList.SetUAVParameter(ComputeShaderRHI, PointPosDataBuffer.GetBaseIndex(), BufferUAV2);
 }
 
 void FComputeShaderTransposeDeclaration::SetUniformBuffers(FRHICommandList& RHICmdList, FComputeShaderConstantParameters& ConstantParameters, FComputeShaderVariableParameters& VariableParameters)

@@ -94,7 +94,7 @@ private:
 	FTexture2DRHIRef m_SortedPointPosTex;
 	FTexture2DRHIRef m_SortedPointColorsTex;
 	FStructuredBufferRHIParamRef m_SortedPointPosBuffer;
-	//FStructuredBufferRHIParamRef Buffer2;
+	FStructuredBufferRHIParamRef m_SortedPointColorsBuffer;
 	//FStructuredBufferRHIParamRef Buffer3;
 
 	TResourceArray<FVector4> PointPosData;
@@ -105,5 +105,6 @@ private:
 	FUnorderedAccessViewRHIRef m_SortedPointPosBuffer_UAV;
 	FUnorderedAccessViewRHIRef m_SortedPointPosBuffer_UAV2;
 	FUnorderedAccessViewRHIRef m_SortedPointColorsTex_UAV;
+	FUnorderedAccessViewRHIRef m_SortedPointColorsBuffer_UAV;
 
 };

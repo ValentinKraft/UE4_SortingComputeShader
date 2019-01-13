@@ -128,7 +128,7 @@ public:
 	}
 
 	//This function is required to let us bind our runtime surface to the shader using an SRV.
-	void SetSurfaces(FRHICommandList& RHICmdList, FShaderResourceViewRHIRef TextureParameterSRV);
+	void SetOutputTexture(FRHICommandList& RHICmdList, FShaderResourceViewRHIRef TextureParameterSRV);
 	//This function is required to bind our constant / uniform buffers to the shader.
 	void SetUniformBuffers(FRHICommandList& RHICmdList, FPixelShaderConstantParameters& ConstantParameters, FPixelShaderVariableParameters& VariableParameters);
 	//This is used to clean up the buffer binds after each invocation to let them be changed and used elsewhere if needed.

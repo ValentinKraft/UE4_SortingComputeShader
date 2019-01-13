@@ -157,7 +157,7 @@ void FPixelShader::ExecutePixelShaderInternal()
 
 
 
-	PixelShader->SetSurfaces(RHICmdList, TextureParameterSRV);
+	PixelShader->SetOutputTexture(RHICmdList, TextureParameterSRV);
 	PixelShader->SetUniformBuffers(RHICmdList, ConstantParameters, VariableParameters);
 
 	// Draw a fullscreen quad that we can run our pixel shader on

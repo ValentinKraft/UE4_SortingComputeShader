@@ -18,10 +18,10 @@
 // Constant Buffers
 //--------------------------------------------------------------------------------------
 
-RWTexture2D<float4> OutputSurface : register(u1);           //Point Positions UAV Texture
-RWStructuredBuffer<float4> PointPosData : register(u0);
-RWStructuredBuffer<float4> Input : register(u2);
-RWTexture2D<float4> PointColorsTexture : register(u3);      //Point Positions Texture
+RWTexture2D<float4> OutputTexture : register(u0);           // Point Positions Output UAV Texture
+RWTexture2D<float4> OutputColorTexture : register(u3);      // Point Colors Output UAV Texture
+RWStructuredBuffer<float4> PointPosData : register(u1);
+RWStructuredBuffer<float4> PointPosDataBuffer : register(u2);
 
 // Thread group shared memory limit (DX11): 32KB --> 2048 float4 values --> 32 thread groups optimum --> 1024 Threads optimum (?)
 // Only shared within a thread group!
@@ -66,21 +66,21 @@ void MainComputeShader(uint3 Gid : SV_GroupID,             //atm: -, 0...256, - 
 
     // Update buffers with sorted values
     PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x] = shared_data[GI];
-    Input[DTid.y * BITONIC_BLOCK_SIZE + DTid.x] = shared_data[GI];
+    PointPosDataBuffer[DTid.y * BITONIC_BLOCK_SIZE + DTid.x] = shared_data[GI];
     GroupMemoryBarrierWithGroupSync();
 
     // Display all threads
     //if (CSVariables.g_iLevelMask == 512)
-    //    OutputSurface[DTid.xy] = float4(float3(DTid.xy, 0), 0) / 256.0f;
+    //    OutputTexture[DTid.xy] = float4(float3(DTid.xy, 0), 0) / 256.0f;
 
     // Update output texture at the end
     if (CSVariables.g_iLevelMask == BITONIC_BLOCK_SIZE * BITONIC_BLOCK_SIZE)
     {
-        OutputSurface[DTid.xy] = PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x];
+        OutputTexture[DTid.xy] = PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x];
         GroupMemoryBarrierWithGroupSync();
     }
 
-    PointColorsTexture[DTid.xy] = float4(1.5f,1.0f,0.5f,0.5f);
+    OutputColorTexture[DTid.xy] = float4(1.0f, 1.0f, 0.5f, 0.5f);
     GroupMemoryBarrierWithGroupSync();
 
 }
@@ -96,7 +96,7 @@ void TransposeMatrix(uint3 Gid : SV_GroupID,
                      uint3 GTid : SV_GroupThreadID,
                      uint GI : SV_GroupIndex)
 {
-    transpose_shared_data[GI] = Input[DTid.y * CSVariables.g_iWidth + DTid.x];
+    transpose_shared_data[GI] = PointPosDataBuffer[DTid.y * CSVariables.g_iWidth + DTid.x];
     GroupMemoryBarrierWithGroupSync();
 
     uint2 XY = DTid.yx - GTid.yx + GTid.xy;

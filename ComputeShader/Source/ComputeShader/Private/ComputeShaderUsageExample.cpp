@@ -50,13 +50,11 @@ FComputeShader::FComputeShader(float SimulationSpeed, int32 SizeX, int32 SizeY, 
 
 	// Initialise with invalid values
 	PointPosData.Init(FVector4(-1.f, -1.f, -1.f, -1.f), NUM_ELEMENTS);
-	PointColorData.Init(FVector4(1.f, 0.f, 0.f, 1.f), NUM_ELEMENTS);
+	PointColorData.Init(FVector4(1.f, 1.f, 1.f, 1.f), NUM_ELEMENTS);
 
 	CreateInfo.ResourceArray = &PointPosData;
 	m_SortedPointPosBuffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
 	m_SortedPointPosBuffer_UAV = RHICreateUnorderedAccessView(m_SortedPointPosBuffer, false, false);
-
-	//Buffer2 = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
 	m_SortedPointPosBuffer_UAV2 = RHICreateUnorderedAccessView(m_SortedPointPosBuffer, false, false);
 }
 
@@ -139,6 +137,12 @@ void FComputeShader::ParallelBitonicSort(FRHICommandListImmediate & RHICmdList)
 	m_SortedPointPosBuffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
 	m_SortedPointPosBuffer_UAV = RHICreateUnorderedAccessView(m_SortedPointPosBuffer, false, false);
 
+	//* Update StructuredBuffer with new Data */
+	m_SortedPointColorsBuffer_UAV.SafeRelease();
+	CreateInfo.ResourceArray = &PointColorData;
+	m_SortedPointColorsBuffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
+	m_SortedPointColorsBuffer_UAV = RHICreateUnorderedAccessView(m_SortedPointColorsBuffer, false, false);
+
 	const uint32 cl[4] = { 0,0,0,1 };
 	RHICmdList.ClearTinyUAV(m_SortedPointPosBuffer_UAV2, cl);
 	
@@ -157,7 +161,7 @@ void FComputeShader::ParallelBitonicSort(FRHICommandListImmediate & RHICmdList)
 		ComputeShader->SetUniformBuffers(RHICmdList, ConstantParameters, VariableParameters);
 
 		// Sort the row data
-		ComputeShader->SetSurfaces(RHICmdList, m_SortedPointPosTex_UAV);
+		ComputeShader->SetOutputTexture(RHICmdList, m_SortedPointPosTex_UAV);
 		ComputeShader->SetPointColorTexture(RHICmdList, m_SortedPointColorsTex_UAV);
 		RHICmdList.SetComputeShader(ComputeShader->GetComputeShader());
 		DispatchComputeShader(RHICmdList, *ComputeShader, 1, NUM_ELEMENTS / BITONIC_BLOCK_SIZE, 1);
@@ -192,7 +196,7 @@ void FComputeShader::ParallelBitonicSort(FRHICommandListImmediate & RHICmdList)
 
 		// Sort the row data
 		ComputeShader->SetUniformBuffers(RHICmdList, ConstantParameters, VariableParameters);
-		ComputeShader->SetSurfaces(RHICmdList, m_SortedPointPosTex_UAV);
+		ComputeShader->SetOutputTexture(RHICmdList, m_SortedPointPosTex_UAV);
 		ComputeShader->SetPointColorTexture(RHICmdList, m_SortedPointColorsTex_UAV);
 		RHICmdList.SetComputeShader(ComputeShader->GetComputeShader());
 		DispatchComputeShader(RHICmdList, *ComputeShader, 1, NUM_ELEMENTS / BITONIC_BLOCK_SIZE, 1);
