@@ -39,6 +39,7 @@ FComputeShaderDeclaration::FComputeShaderDeclaration(const ShaderMetaType::Compi
 	PointPosData.Bind(Initializer.ParameterMap, TEXT("PointPosData"));
 	PointPosDataBuffer.Bind(Initializer.ParameterMap, TEXT("PointPosDataBuffer"));
 	OutputColorTexture.Bind(Initializer.ParameterMap, TEXT("OutputColorTexture"));
+	PointColorData.Bind(Initializer.ParameterMap, TEXT("PointColorData"));
 }
 
 void FComputeShaderDeclaration::ModifyCompilationEnvironment(EShaderPlatform Platform, FShaderCompilerEnvironment& OutEnvironment)
@@ -63,6 +64,14 @@ void FComputeShaderDeclaration::SetPointPosData(FRHICommandList& RHICmdList, FUn
 		RHICmdList.SetUAVParameter(ComputeShaderRHI, PointPosData.GetBaseIndex(), BufferUAV);
 	if (PointPosDataBuffer.IsBound())
 		RHICmdList.SetUAVParameter(ComputeShaderRHI, PointPosDataBuffer.GetBaseIndex(), BufferUAV2);
+}
+
+void FComputeShaderDeclaration::SetPointColorData(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV) {
+
+	FComputeShaderRHIParamRef ComputeShaderRHI = GetComputeShader();
+
+	if (PointColorData.IsBound())
+		RHICmdList.SetUAVParameter(ComputeShaderRHI, PointColorData.GetBaseIndex(), BufferUAV);
 }
 
 void FComputeShaderDeclaration::SetPointColorTexture(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV) {
@@ -96,6 +105,8 @@ void FComputeShaderDeclaration::UnbindBuffers(FRHICommandList& RHICmdList)
 		RHICmdList.SetUAVParameter(ComputeShaderRHI, OutputColorTexture.GetBaseIndex(), FUnorderedAccessViewRHIRef());
 	if (PointPosData.IsBound())
 		RHICmdList.SetShaderResourceViewParameter(ComputeShaderRHI, PointPosData.GetBaseIndex(), FShaderResourceViewRHIParamRef());
+	if (PointColorData.IsBound())
+		RHICmdList.SetUAVParameter(ComputeShaderRHI, PointColorData.GetBaseIndex(), FUnorderedAccessViewRHIRef());
 }
 
 /////////////////////////////////////////////////////////////////////////////

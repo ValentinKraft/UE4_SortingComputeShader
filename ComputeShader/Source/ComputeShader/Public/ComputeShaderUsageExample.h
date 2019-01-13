@@ -75,7 +75,7 @@ public:
 	void SetPointColorDataReference(TArray<uint8>* data) {
 		check(data->Num() <= NUM_ELEMENTS*4);
 		for (int i = 0; i < NUM_ELEMENTS; i+=4)
-			PointColorData[i] = FVector4((*data)[i], (*data)[i+1], (*data)[i+2], (*data)[i+3]);
+			PointColorData[i/4] = FVector4((*data)[i], (*data)[i+1], (*data)[i+2], (*data)[i+3]);
 	}
 
 private:

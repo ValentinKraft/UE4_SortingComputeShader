@@ -50,7 +50,7 @@ FComputeShader::FComputeShader(float SimulationSpeed, int32 SizeX, int32 SizeY, 
 
 	// Initialise with invalid values
 	PointPosData.Init(FVector4(-1.f, -1.f, -1.f, -1.f), NUM_ELEMENTS);
-	PointColorData.Init(FVector4(1.f, 1.f, 1.f, 1.f), NUM_ELEMENTS);
+	PointColorData.Init(FVector4(0.0f, 1.0f, 0.0f, 1.0f), NUM_ELEMENTS);
 
 	CreateInfo.ResourceArray = &PointPosData;
 	m_SortedPointPosBuffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
@@ -130,14 +130,14 @@ void FComputeShader::ParallelBitonicSort(FRHICommandListImmediate & RHICmdList)
 	TShaderMapRef<FComputeShaderDeclaration> ComputeShader(GetGlobalShaderMap(FeatureLevel));
 	TShaderMapRef<FComputeShaderTransposeDeclaration> ComputeShaderTranspose(GetGlobalShaderMap(FeatureLevel));
 
-	//* Update StructuredBuffer with new Data */
+	//* Update Point Positions StructuredBuffer with new Data */
 	m_SortedPointPosBuffer_UAV.SafeRelease();
 	FRHIResourceCreateInfo CreateInfo;
 	CreateInfo.ResourceArray = &PointPosData;
 	m_SortedPointPosBuffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
 	m_SortedPointPosBuffer_UAV = RHICreateUnorderedAccessView(m_SortedPointPosBuffer, false, false);
 
-	//* Update StructuredBuffer with new Data */
+	//* Update Point Colors StructuredBuffer with new Data */
 	m_SortedPointColorsBuffer_UAV.SafeRelease();
 	CreateInfo.ResourceArray = &PointColorData;
 	m_SortedPointColorsBuffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
@@ -146,7 +146,9 @@ void FComputeShader::ParallelBitonicSort(FRHICommandListImmediate & RHICmdList)
 	const uint32 cl[4] = { 0,0,0,1 };
 	RHICmdList.ClearTinyUAV(m_SortedPointPosBuffer_UAV2, cl);
 	
+	// Pass input data to shader
 	ComputeShader->SetPointPosData(RHICmdList, m_SortedPointPosBuffer_UAV, m_SortedPointPosBuffer_UAV2);
+	ComputeShader->SetPointColorData(RHICmdList, m_SortedPointColorsBuffer_UAV);
 
 	/////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////

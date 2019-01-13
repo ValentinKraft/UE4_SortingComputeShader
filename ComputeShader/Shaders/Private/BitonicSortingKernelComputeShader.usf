@@ -21,6 +21,7 @@
 RWTexture2D<float4> OutputTexture : register(u0);           // Point Positions Output UAV Texture
 RWTexture2D<float4> OutputColorTexture : register(u3);      // Point Colors Output UAV Texture
 RWStructuredBuffer<float4> PointPosData : register(u1);
+RWStructuredBuffer<float4> PointColorData : register(u4);
 RWStructuredBuffer<float4> PointPosDataBuffer : register(u2);
 
 // Thread group shared memory limit (DX11): 32KB --> 2048 float4 values --> 32 thread groups optimum --> 1024 Threads optimum (?)
@@ -80,7 +81,7 @@ void MainComputeShader(uint3 Gid : SV_GroupID,             //atm: -, 0...256, - 
         GroupMemoryBarrierWithGroupSync();
     }
 
-    OutputColorTexture[DTid.xy] = float4(1.0f, 1.0f, 0.5f, 0.5f);
+    OutputColorTexture[DTid.xy] = PointColorData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x];
     GroupMemoryBarrierWithGroupSync();
 
 }
