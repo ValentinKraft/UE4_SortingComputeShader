@@ -40,6 +40,7 @@ mCastedColorRT = Cast<UTexture>(mComputeShaderRT2);
 ```
 
 To see the plugin in action, see my point cloud renderer plugin for UE4: https://github.com/ValentinKraft/UE4_GPUPointCloudRenderer/tree/WithComputeShaderSort_4.18
+
 A detailed tutorial might follow as well.
 Tested in Unreal 4.18.
 
