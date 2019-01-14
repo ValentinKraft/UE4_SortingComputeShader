@@ -23,6 +23,7 @@ RWTexture2D<float4> OutputColorTexture : register(u3);          // Point Colors 
 RWStructuredBuffer<float4> PointPosData : register(u1);         // Point Positions Input Buffer
 RWStructuredBuffer<float4> PointColorData : register(u4);       // Point Colors Input Buffer
 RWStructuredBuffer<float4> PointPosDataBuffer : register(u2);
+RWStructuredBuffer<float4> PointColorDataBuffer : register(u5);
 //--------------------------------------------------------------------------------------
 
 // Thread group shared memory limit (DX11): 32KB --> 2048 float4 values --> 32 thread groups optimum --> 1024 Threads optimum (?)
@@ -76,6 +77,7 @@ void MainComputeShader(uint3 Gid : SV_GroupID,             //atm: -, 0...256, - 
     PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x] = shared_data[GI];
     PointPosDataBuffer[DTid.y * BITONIC_BLOCK_SIZE + DTid.x] = shared_data[GI];
     PointColorData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x] = shared_data_colors[GI];
+    PointColorDataBuffer[DTid.y * BITONIC_BLOCK_SIZE + DTid.x] = shared_data_colors[GI];
     GroupMemoryBarrierWithGroupSync();
 
     // Update output textures at the end
@@ -84,7 +86,7 @@ void MainComputeShader(uint3 Gid : SV_GroupID,             //atm: -, 0...256, - 
         OutputTexture[DTid.xy] = PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x];
         GroupMemoryBarrierWithGroupSync();
 
-        OutputColorTexture[DTid.xy] = PointColorData[DTid.y * BITONIC_BLOCK_SIZE/4 + DTid.x];
+        OutputColorTexture[DTid.xy] = PointColorData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x];
         GroupMemoryBarrierWithGroupSync();
     }
 
@@ -98,6 +100,7 @@ void MainComputeShader(uint3 Gid : SV_GroupID,             //atm: -, 0...256, - 
 // Matrix Transpose Compute Shader
 //--------------------------------------------------------------------------------------
 groupshared float4 transpose_shared_data[TRANSPOSE_BLOCK_SIZE * TRANSPOSE_BLOCK_SIZE];
+groupshared float4 transpose_shared_data2[TRANSPOSE_BLOCK_SIZE * TRANSPOSE_BLOCK_SIZE];
 
 [numthreads(TRANSPOSE_BLOCK_SIZE, TRANSPOSE_BLOCK_SIZE, 1)]
 void TransposeMatrix(uint3 Gid : SV_GroupID,
@@ -106,8 +109,11 @@ void TransposeMatrix(uint3 Gid : SV_GroupID,
                      uint GI : SV_GroupIndex)
 {
     transpose_shared_data[GI] = PointPosDataBuffer[DTid.y * CSVariables.g_iWidth + DTid.x];
+    transpose_shared_data2[GI] = PointColorDataBuffer[DTid.y * CSVariables.g_iWidth + DTid.x];
     GroupMemoryBarrierWithGroupSync();
 
     uint2 XY = DTid.yx - GTid.yx + GTid.xy;
     PointPosData[XY.y * CSVariables.g_iHeight + XY.x] = transpose_shared_data[GTid.x * TRANSPOSE_BLOCK_SIZE + GTid.y];
+    PointColorData[XY.y * CSVariables.g_iHeight + XY.x] = transpose_shared_data2[GTid.x * TRANSPOSE_BLOCK_SIZE + GTid.y];
+    GroupMemoryBarrierWithGroupSync();
 }
