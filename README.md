@@ -6,14 +6,43 @@ The texture/problem size has to be set manually in "ComputeShaderUsageExample.h"
 
 ```CPP
 #define BITONIC_BLOCK_SIZE 1024
-#define TRANSPOSE_BLOCK_SIZE 16
 ```
 ```CPP
 const UINT NUM_ELEMENTS = 1024 * 1024;
 const UINT BITONIC_BLOCK_SIZE = 1024;
 ```
 
-A tutorial might follow as well.
+To sort a dataset with the compute shader, the compute shader has to be used as follows:
+
+```CPP
+mComputeShader = new FComputeShader(1.0f, GetUpperPowerOfTwo(pointsPerAxis), GetUpperPowerOfTwo(pointsPerAxis), currentWorld->Scene->GetFeatureLevel());
+
+// Send unsorted point position data and point color data to compute shader
+mComputeShader->SetPointPosDataReference(mPointPosDataPointer);
+mComputeShader->SetPointColorDataReference(mColorDataPointer);
+
+// Execute parallel sorting compute shader
+mComputeShader->ExecuteComputeShader(FVector4(currentCamPos));
+```
+
+Furthermore, the created textures have to be converted to usable textures via a pixel shader:
+```CPP
+mPixelShader = new FPixelShader(FColor::Green, currentWorld->Scene->GetFeatureLevel());
+
+// Render sorted point positions to render target for the material shader
+mPixelShader->ExecutePixelShader(mPointPosRT, mComputeShader->GetSortedPointPosTexture(), FColor::Red, 1.0f);
+mSortedPointPosTex = Cast<UTexture>(mPointPosRT);
+
+// Render sorted point colors to render target for the material shader
+mPixelShader->ExecutePixelShader(mPointColorRT, mComputeShader->GetSortedPointColorsTexture(), FColor::Red, 1.0f);
+mSortedPointColorTex = Cast<UTexture>(mPointColorRT);
+```
+
+To see the plugin in action, see my point cloud renderer plugin for UE4:
+
+https://github.com/ValentinKraft/UE4_GPUPointCloudRenderer/tree/WithComputeShaderSort_4.18
+
+A detailed tutorial might follow as well.
 Tested in Unreal 4.18.
 
 [![Demo](https://img.youtube.com/vi/jVZaz-0Y4Ek/0.jpg)](https://www.youtube.com/watch?v=jVZaz-0Y4Ek)
