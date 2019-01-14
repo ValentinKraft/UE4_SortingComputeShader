@@ -90,21 +90,23 @@ private:
 	FComputeShaderVariableParameters VariableParameters;
 	ERHIFeatureLevel::Type FeatureLevel;
 
-	/** Main texture */
+	/** Main textures */
 	FTexture2DRHIRef m_SortedPointPosTex;
 	FTexture2DRHIRef m_SortedPointColorsTex;
-	FStructuredBufferRHIParamRef m_SortedPointPosBuffer;
-	FStructuredBufferRHIParamRef m_SortedPointColorsBuffer;
-	//FStructuredBufferRHIParamRef Buffer3;
 
+	/** Working buffer for the shader */
+	FStructuredBufferRHIParamRef m_PointPosDataBuffer;
+	FStructuredBufferRHIParamRef m_PointColorsDataBuffer;
+
+	/** Input data */
 	TResourceArray<FVector4> PointPosData;
 	TResourceArray<FVector4> PointColorData;
 
 	/** We need a UAV if we want to be able to write to the resource*/
 	FUnorderedAccessViewRHIRef m_SortedPointPosTex_UAV;
-	FUnorderedAccessViewRHIRef m_SortedPointPosBuffer_UAV;
-	FUnorderedAccessViewRHIRef m_SortedPointPosBuffer_UAV2;
 	FUnorderedAccessViewRHIRef m_SortedPointColorsTex_UAV;
-	FUnorderedAccessViewRHIRef m_SortedPointColorsBuffer_UAV;
-
+	FUnorderedAccessViewRHIRef m_PointPosDataBuffer_UAV;
+	FUnorderedAccessViewRHIRef m_PointPosDataBuffer_UAV2;
+	FUnorderedAccessViewRHIRef m_PointColorsDataBuffer_UAV;
+	FUnorderedAccessViewRHIRef m_PointColorsDataBuffer_UAV2;
 };

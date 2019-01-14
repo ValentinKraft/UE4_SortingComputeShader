@@ -50,9 +50,15 @@ FComputeShader::FComputeShader(float SimulationSpeed, int32 SizeX, int32 SizeY, 
 
 	// Create UAVs for point position buffer
 	CreateInfo.ResourceArray = &PointPosData;
-	m_SortedPointPosBuffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
-	m_SortedPointPosBuffer_UAV = RHICreateUnorderedAccessView(m_SortedPointPosBuffer, false, false);
-	m_SortedPointPosBuffer_UAV2 = RHICreateUnorderedAccessView(m_SortedPointPosBuffer, false, false);
+	m_PointPosDataBuffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
+	m_PointPosDataBuffer_UAV = RHICreateUnorderedAccessView(m_PointPosDataBuffer, false, false);
+	m_PointPosDataBuffer_UAV2 = RHICreateUnorderedAccessView(m_PointPosDataBuffer, false, false);
+
+	//// Create UAVs for point colors buffer
+	//CreateInfo.ResourceArray = &PointColorData;
+	//m_PointColorsDataBuffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
+	//m_PointColorsDataBuffer_UAV = RHICreateUnorderedAccessView(m_PointColorsDataBuffer, false, false);
+	//m_PointColorsDataBuffer_UAV2 = RHICreateUnorderedAccessView(m_PointColorsDataBuffer, false, false);
 }
 
 FComputeShader::~FComputeShader()
@@ -97,13 +103,13 @@ void FComputeShader::ExecuteComputeShaderInternal()
 			m_SortedPointColorsTex_UAV.SafeRelease();
 			m_SortedPointColorsTex_UAV = NULL;
 		}
-		if (NULL != m_SortedPointPosBuffer_UAV) {
-			m_SortedPointPosBuffer_UAV.SafeRelease();
-			m_SortedPointPosBuffer_UAV = NULL;
+		if (NULL != m_PointPosDataBuffer_UAV) {
+			m_PointPosDataBuffer_UAV.SafeRelease();
+			m_PointPosDataBuffer_UAV = NULL;
 		}
-		if (NULL != m_SortedPointPosBuffer_UAV2) {
-			m_SortedPointPosBuffer_UAV2.SafeRelease();
-			m_SortedPointPosBuffer_UAV2 = NULL;
+		if (NULL != m_PointPosDataBuffer_UAV2) {
+			m_PointPosDataBuffer_UAV2.SafeRelease();
+			m_PointPosDataBuffer_UAV2 = NULL;
 		}
 		return;
 	}
@@ -128,24 +134,27 @@ void FComputeShader::ParallelBitonicSort(FRHICommandListImmediate & RHICmdList)
 	TShaderMapRef<FComputeShaderTransposeDeclaration> ComputeShaderTranspose(GetGlobalShaderMap(FeatureLevel));
 
 	//* Update point positions buffer with new data */
-	m_SortedPointPosBuffer_UAV.SafeRelease();
+	m_PointPosDataBuffer_UAV.SafeRelease();
 	FRHIResourceCreateInfo CreateInfo;
 	CreateInfo.ResourceArray = &PointPosData;
-	m_SortedPointPosBuffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
-	m_SortedPointPosBuffer_UAV = RHICreateUnorderedAccessView(m_SortedPointPosBuffer, false, false);
+	m_PointPosDataBuffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
+	m_PointPosDataBuffer_UAV = RHICreateUnorderedAccessView(m_PointPosDataBuffer, false, false);
+	m_PointPosDataBuffer_UAV2 = RHICreateUnorderedAccessView(m_PointPosDataBuffer, false, false);
 
 	//* Update point colors buffer with new data */
-	m_SortedPointColorsBuffer_UAV.SafeRelease();
+	m_PointColorsDataBuffer_UAV.SafeRelease();
 	CreateInfo.ResourceArray = &PointColorData;
-	m_SortedPointColorsBuffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
-	m_SortedPointColorsBuffer_UAV = RHICreateUnorderedAccessView(m_SortedPointColorsBuffer, false, false);
+	m_PointColorsDataBuffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
+	m_PointColorsDataBuffer_UAV = RHICreateUnorderedAccessView(m_PointColorsDataBuffer, false, false);
+	m_PointColorsDataBuffer_UAV2 = RHICreateUnorderedAccessView(m_PointColorsDataBuffer, false, false);
 
 	const uint32 cl[4] = { 0,0,0,1 };
-	RHICmdList.ClearTinyUAV(m_SortedPointPosBuffer_UAV2, cl);
+	RHICmdList.ClearTinyUAV(m_PointPosDataBuffer_UAV2, cl);
+	RHICmdList.ClearTinyUAV(m_PointColorsDataBuffer_UAV2, cl);
 	
 	//* Pass input data to shader */
-	ComputeShader->SetPointPosData(RHICmdList, m_SortedPointPosBuffer_UAV, m_SortedPointPosBuffer_UAV2);
-	ComputeShader->SetPointColorData(RHICmdList, m_SortedPointColorsBuffer_UAV);
+	ComputeShader->SetPointPosData(RHICmdList, m_PointPosDataBuffer_UAV, m_PointPosDataBuffer_UAV2);
+	ComputeShader->SetPointColorData(RHICmdList, m_PointColorsDataBuffer_UAV, m_PointColorsDataBuffer_UAV2);
 
 	/////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////
