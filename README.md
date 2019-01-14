@@ -30,12 +30,12 @@ Furthermore, the created textures have to be converted to usable textures via a 
 mPixelShader = new FPixelShader(FColor::Green, currentWorld->Scene->GetFeatureLevel());
 
 // Render sorted point positions to render target for the material shader
-mPixelShader->ExecutePixelShader(mComputeShaderRT, mComputeShader->GetSortedPointPosTexture(), FColor::Red, 1.0f);
-mCastedRT = Cast<UTexture>(mComputeShaderRT);
+mPixelShader->ExecutePixelShader(mPointPosRT, mComputeShader->GetSortedPointPosTexture(), FColor::Red, 1.0f);
+mSortedPointPosTex = Cast<UTexture>(mPointPosRT);
 
 // Render sorted point colors to render target for the material shader
-mPixelShader->ExecutePixelShader(mComputeShaderRT2, mComputeShader->GetSortedPointColorsTexture(), FColor::Red, 1.0f);
-mCastedColorRT = Cast<UTexture>(mComputeShaderRT2);
+mPixelShader->ExecutePixelShader(mPointColorRT, mComputeShader->GetSortedPointColorsTexture(), FColor::Red, 1.0f);
+mSortedPointColorTex = Cast<UTexture>(mPointColorRT);
 ```
 
 To see the plugin in action, see my point cloud renderer plugin for UE4:
