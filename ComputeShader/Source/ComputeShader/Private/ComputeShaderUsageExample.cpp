@@ -36,11 +36,7 @@ FComputeShader::FComputeShader(float SimulationSpeed, int32 SizeX, int32 SizeY, 
 	bIsUnloading = false;
 	bSave = false;
 
-	//There are only a few different texture formats we can use if we want to use the output texture as input in a pixel shader later
-	//I would have loved to go with the R8G8B8A8_UNORM approach, but unfortunately, it seems UE4 does not support this in an obvious way, which is why I chose the UINT format using packing instead :)
-	//There is some excellent information on this topic in the following links:
-    //http://www.gamedev.net/topic/605356-r8g8b8a8-texture-format-in-compute-shader/
-	//https://msdn.microsoft.com/en-us/library/ff728749(v=vs.85).aspx
+	// Create textures
 	FRHIResourceCreateInfo CreateInfo;
 	m_SortedPointPosTex = RHICreateTexture2D(SizeX, SizeY, PF_A32B32G32R32F, 1, 1, TexCreate_ShaderResource | TexCreate_UAV, CreateInfo);
 	m_SortedPointPosTex_UAV = RHICreateUnorderedAccessView(m_SortedPointPosTex);
@@ -48,10 +44,11 @@ FComputeShader::FComputeShader(float SimulationSpeed, int32 SizeX, int32 SizeY, 
 	m_SortedPointColorsTex = RHICreateTexture2D(SizeX, SizeY, PF_A32B32G32R32F, 1, 1, TexCreate_ShaderResource | TexCreate_UAV, CreateInfo);
 	m_SortedPointColorsTex_UAV = RHICreateUnorderedAccessView(m_SortedPointColorsTex);
 
-	// Initialise with invalid values
+	// Initialise data buffers with invalid values
 	PointPosData.Init(FVector4(-1.f, -1.f, -1.f, -1.f), NUM_ELEMENTS);
 	PointColorData.Init(FVector4(0.0f, 1.0f, 0.0f, 1.0f), NUM_ELEMENTS);
 
+	// Create UAVs for point position buffer
 	CreateInfo.ResourceArray = &PointPosData;
 	m_SortedPointPosBuffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
 	m_SortedPointPosBuffer_UAV = RHICreateUnorderedAccessView(m_SortedPointPosBuffer, false, false);
@@ -130,14 +127,14 @@ void FComputeShader::ParallelBitonicSort(FRHICommandListImmediate & RHICmdList)
 	TShaderMapRef<FComputeShaderDeclaration> ComputeShader(GetGlobalShaderMap(FeatureLevel));
 	TShaderMapRef<FComputeShaderTransposeDeclaration> ComputeShaderTranspose(GetGlobalShaderMap(FeatureLevel));
 
-	//* Update Point Positions StructuredBuffer with new Data */
+	//* Update point positions buffer with new data */
 	m_SortedPointPosBuffer_UAV.SafeRelease();
 	FRHIResourceCreateInfo CreateInfo;
 	CreateInfo.ResourceArray = &PointPosData;
 	m_SortedPointPosBuffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
 	m_SortedPointPosBuffer_UAV = RHICreateUnorderedAccessView(m_SortedPointPosBuffer, false, false);
 
-	//* Update Point Colors StructuredBuffer with new Data */
+	//* Update point colors buffer with new data */
 	m_SortedPointColorsBuffer_UAV.SafeRelease();
 	CreateInfo.ResourceArray = &PointColorData;
 	m_SortedPointColorsBuffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
@@ -146,7 +143,7 @@ void FComputeShader::ParallelBitonicSort(FRHICommandListImmediate & RHICmdList)
 	const uint32 cl[4] = { 0,0,0,1 };
 	RHICmdList.ClearTinyUAV(m_SortedPointPosBuffer_UAV2, cl);
 	
-	// Pass input data to shader
+	//* Pass input data to shader */
 	ComputeShader->SetPointPosData(RHICmdList, m_SortedPointPosBuffer_UAV, m_SortedPointPosBuffer_UAV2);
 	ComputeShader->SetPointColorData(RHICmdList, m_SortedPointColorsBuffer_UAV);
 

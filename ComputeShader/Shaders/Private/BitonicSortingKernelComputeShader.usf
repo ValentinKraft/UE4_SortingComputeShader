@@ -8,25 +8,27 @@
 // by Valentin Kraft
 //
 // Inspired by the ComputeShaderSort11
-// example by Microsoft (https://code.msdn.microsoft.com/windowsdesktop/DirectCompute-Basic-Win32-7d5a7408)
+// example by Microsoft:
+// https://code.msdn.microsoft.com/windowsdesktop/DirectCompute-Basic-Win32-7d5a7408
 /////////////////////////////
 
 #define BITONIC_BLOCK_SIZE 1024
 #define TRANSPOSE_BLOCK_SIZE 16
 
 //--------------------------------------------------------------------------------------
-// Constant Buffers
+// Buffers
 //--------------------------------------------------------------------------------------
-
-RWTexture2D<float4> OutputTexture : register(u0);           // Point Positions Output UAV Texture
-RWTexture2D<float4> OutputColorTexture : register(u3);      // Point Colors Output UAV Texture
-RWStructuredBuffer<float4> PointPosData : register(u1);
-RWStructuredBuffer<float4> PointColorData : register(u4);
+RWTexture2D<float4> OutputTexture : register(u0);               // Point Positions Output UAV Texture
+RWTexture2D<float4> OutputColorTexture : register(u3);          // Point Colors Output UAV Texture
+RWStructuredBuffer<float4> PointPosData : register(u1);         // Point Positions Input Buffer
+RWStructuredBuffer<float4> PointColorData : register(u4);       // Point Colors Input Buffer
 RWStructuredBuffer<float4> PointPosDataBuffer : register(u2);
+//--------------------------------------------------------------------------------------
 
 // Thread group shared memory limit (DX11): 32KB --> 2048 float4 values --> 32 thread groups optimum --> 1024 Threads optimum (?)
 // Only shared within a thread group!
 groupshared float4 shared_data[BITONIC_BLOCK_SIZE];
+groupshared float4 shared_data_colors[BITONIC_BLOCK_SIZE];
 
 // In order to make full use of the resources of the GPU, there should be at least as many thread groups as there are multiprocessors on the GPU, and ideally two or more #ToDo: Make dynamic
 // Max number of threads in a group (DX11): 1024
@@ -41,6 +43,7 @@ void MainComputeShader(uint3 Gid : SV_GroupID,             //atm: -, 0...256, - 
     
     // Load initial data - mind mapping: Z/X/Y/Z!
     shared_data[GI] = PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x];
+    shared_data_colors[GI] = PointColorData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x];
     GroupMemoryBarrierWithGroupSync();
 
 
@@ -59,32 +62,37 @@ void MainComputeShader(uint3 Gid : SV_GroupID,             //atm: -, 0...256, - 
         if (pos2.g == -1 && pos2.b == -1 && pos2.r == -1)
             dist2 = -dist2;
 
+        // Atomic compare operation
         float4 result = ((dist1 >= dist2) == (bool) (CSVariables.g_iLevelMask & DTid.x)) ? shared_data[GI ^ j] : shared_data[GI];
+        float4 result_color = ((dist1 >= dist2) == (bool) (CSVariables.g_iLevelMask & DTid.x)) ? shared_data_colors[GI ^ j] : shared_data_colors[GI];
         GroupMemoryBarrierWithGroupSync();
+
         shared_data[GI] = result;
+        shared_data_colors[GI] = result_color;
         GroupMemoryBarrierWithGroupSync();
     }
 
     // Update buffers with sorted values
     PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x] = shared_data[GI];
     PointPosDataBuffer[DTid.y * BITONIC_BLOCK_SIZE + DTid.x] = shared_data[GI];
+    PointColorData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x] = shared_data_colors[GI];
     GroupMemoryBarrierWithGroupSync();
 
-    // Display all threads
-    //if (CSVariables.g_iLevelMask == 512)
-    //    OutputTexture[DTid.xy] = float4(float3(DTid.xy, 0), 0) / 256.0f;
-
-    // Update output texture at the end
+    // Update output textures at the end
     if (CSVariables.g_iLevelMask == BITONIC_BLOCK_SIZE * BITONIC_BLOCK_SIZE)
     {
         OutputTexture[DTid.xy] = PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x];
         GroupMemoryBarrierWithGroupSync();
+
+        OutputColorTexture[DTid.xy] = PointColorData[DTid.y * BITONIC_BLOCK_SIZE/4 + DTid.x];
+        GroupMemoryBarrierWithGroupSync();
     }
 
-    OutputColorTexture[DTid.xy] = PointColorData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x];
-    GroupMemoryBarrierWithGroupSync();
-
+    // Visualise threads (debugging)
+    //if (CSVariables.g_iLevelMask == 512)
+    //    OutputTexture[DTid.xy] = float4(float3(DTid.xy, 0), 0) / 256.0f;
 }
+
 
 //--------------------------------------------------------------------------------------
 // Matrix Transpose Compute Shader
