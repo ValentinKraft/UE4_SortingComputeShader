@@ -6,7 +6,6 @@ The texture/problem size has to be set manually in "ComputeShaderUsageExample.h"
 
 ```CPP
 #define BITONIC_BLOCK_SIZE 1024
-#define TRANSPOSE_BLOCK_SIZE 16
 ```
 ```CPP
 const UINT NUM_ELEMENTS = 1024 * 1024;
