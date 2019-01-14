@@ -54,11 +54,11 @@ FComputeShader::FComputeShader(float SimulationSpeed, int32 SizeX, int32 SizeY, 
 	m_PointPosDataBuffer_UAV = RHICreateUnorderedAccessView(m_PointPosDataBuffer, false, false);
 	m_PointPosDataBuffer_UAV2 = RHICreateUnorderedAccessView(m_PointPosDataBuffer, false, false);
 
-	//// Create UAVs for point colors buffer
-	//CreateInfo.ResourceArray = &PointColorData;
-	//m_PointColorsDataBuffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
-	//m_PointColorsDataBuffer_UAV = RHICreateUnorderedAccessView(m_PointColorsDataBuffer, false, false);
-	//m_PointColorsDataBuffer_UAV2 = RHICreateUnorderedAccessView(m_PointColorsDataBuffer, false, false);
+	// Create UAVs for point colors buffer
+	CreateInfo.ResourceArray = &PointColorData;
+	m_PointColorsDataBuffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
+	m_PointColorsDataBuffer_UAV = RHICreateUnorderedAccessView(m_PointColorsDataBuffer, false, false);
+	m_PointColorsDataBuffer_UAV2 = RHICreateUnorderedAccessView(m_PointColorsDataBuffer, false, false);
 }
 
 FComputeShader::~FComputeShader()
@@ -139,14 +139,12 @@ void FComputeShader::ParallelBitonicSort(FRHICommandListImmediate & RHICmdList)
 	CreateInfo.ResourceArray = &PointPosData;
 	m_PointPosDataBuffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
 	m_PointPosDataBuffer_UAV = RHICreateUnorderedAccessView(m_PointPosDataBuffer, false, false);
-	m_PointPosDataBuffer_UAV2 = RHICreateUnorderedAccessView(m_PointPosDataBuffer, false, false);
 
 	//* Update point colors buffer with new data */
 	m_PointColorsDataBuffer_UAV.SafeRelease();
 	CreateInfo.ResourceArray = &PointColorData;
 	m_PointColorsDataBuffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
 	m_PointColorsDataBuffer_UAV = RHICreateUnorderedAccessView(m_PointColorsDataBuffer, false, false);
-	m_PointColorsDataBuffer_UAV2 = RHICreateUnorderedAccessView(m_PointColorsDataBuffer, false, false);
 
 	const uint32 cl[4] = { 0,0,0,1 };
 	RHICmdList.ClearTinyUAV(m_PointPosDataBuffer_UAV2, cl);

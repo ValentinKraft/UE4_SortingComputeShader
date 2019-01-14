@@ -40,6 +40,7 @@ FComputeShaderDeclaration::FComputeShaderDeclaration(const ShaderMetaType::Compi
 	PointPosDataBuffer.Bind(Initializer.ParameterMap, TEXT("PointPosDataBuffer"));
 	OutputColorTexture.Bind(Initializer.ParameterMap, TEXT("OutputColorTexture"));
 	PointColorData.Bind(Initializer.ParameterMap, TEXT("PointColorData"));
+	PointColorDataBuffer.Bind(Initializer.ParameterMap, TEXT("PointColorDataBuffer"));
 }
 
 void FComputeShaderDeclaration::ModifyCompilationEnvironment(EShaderPlatform Platform, FShaderCompilerEnvironment& OutEnvironment)
@@ -66,12 +67,14 @@ void FComputeShaderDeclaration::SetPointPosData(FRHICommandList& RHICmdList, FUn
 		RHICmdList.SetUAVParameter(ComputeShaderRHI, PointPosDataBuffer.GetBaseIndex(), BufferUAV2);
 }
 
-void FComputeShaderDeclaration::SetPointColorData(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV) {
+void FComputeShaderDeclaration::SetPointColorData(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV, FUnorderedAccessViewRHIRef BufferUAV2) {
 
 	FComputeShaderRHIParamRef ComputeShaderRHI = GetComputeShader();
 
 	if (PointColorData.IsBound())
 		RHICmdList.SetUAVParameter(ComputeShaderRHI, PointColorData.GetBaseIndex(), BufferUAV);
+	if (PointColorDataBuffer.IsBound())
+		RHICmdList.SetUAVParameter(ComputeShaderRHI, PointColorDataBuffer.GetBaseIndex(), BufferUAV2);
 }
 
 void FComputeShaderDeclaration::SetPointColorTexture(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV) {
@@ -123,16 +126,6 @@ void FComputeShaderTransposeDeclaration::ModifyCompilationEnvironment(EShaderPla
 {
 	FGlobalShader::ModifyCompilationEnvironment(Platform, OutEnvironment);
 	OutEnvironment.CompilerFlags.Add(CFLAG_StandardOptimization);
-}
-
-void FComputeShaderTransposeDeclaration::SetPointPosData(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV, FUnorderedAccessViewRHIRef BufferUAV2) {
-
-	FComputeShaderRHIParamRef ComputeShaderRHI = GetComputeShader();
-
-	if (PointPosData.IsBound())
-		RHICmdList.SetUAVParameter(ComputeShaderRHI, PointPosData.GetBaseIndex(), BufferUAV);
-	if (PointPosDataBuffer.IsBound())
-		RHICmdList.SetUAVParameter(ComputeShaderRHI, PointPosDataBuffer.GetBaseIndex(), BufferUAV2);
 }
 
 void FComputeShaderTransposeDeclaration::SetUniformBuffers(FRHICommandList& RHICmdList, FComputeShaderConstantParameters& ConstantParameters, FComputeShaderVariableParameters& VariableParameters)

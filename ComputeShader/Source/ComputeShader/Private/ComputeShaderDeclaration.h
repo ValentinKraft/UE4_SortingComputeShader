@@ -74,6 +74,7 @@ public:
 		Ar << PointPosData;
 		Ar << PointPosDataBuffer;
 		Ar << PointColorData;
+		Ar << PointColorDataBuffer;
 
 		return bShaderHasOutdatedParams;
 	}
@@ -88,7 +89,7 @@ public:
 	// Sets the unsorted point position input data
 	void SetPointPosData(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV, FUnorderedAccessViewRHIRef BufferUAV2);
 	// Sets the unsorted point color input data
-	void SetPointColorData(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV);
+	void SetPointColorData(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV, FUnorderedAccessViewRHIRef BufferUAV2);
 	// Sets the output texture for the sorted point colors
 	void SetPointColorTexture(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV);
 
@@ -99,6 +100,7 @@ private:
 	FShaderResourceParameter PointPosData;
 	FShaderResourceParameter PointPosDataBuffer;
 	FShaderResourceParameter PointColorData;
+	FShaderResourceParameter PointColorDataBuffer;
 };
 
 
@@ -122,12 +124,12 @@ public:
 
 		Ar << PointPosData;
 		Ar << PointPosDataBuffer;
+		Ar << PointColorData;
+		Ar << PointColorDataBuffer;
 
 		return bShaderHasOutdatedParams;
 	}
 
-	// Set the point position input data
-	void SetPointPosData(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV, FUnorderedAccessViewRHIRef BufferUAV2);
 	// This function is required to bind our constant / uniform buffers to the shader.
 	void SetUniformBuffers(FRHICommandList& RHICmdList, FComputeShaderConstantParameters& ConstantParameters, FComputeShaderVariableParameters& VariableParameters);
 	// This is used to clean up the buffer binds after each invocation to let them be changed and used elsewhere if needed.
@@ -137,4 +139,6 @@ private:
 	// This is the actual output resource that we will bind to the compute shader
 	FShaderResourceParameter PointPosData;
 	FShaderResourceParameter PointPosDataBuffer;
+	FShaderResourceParameter PointColorData;
+	FShaderResourceParameter PointColorDataBuffer;
 };
