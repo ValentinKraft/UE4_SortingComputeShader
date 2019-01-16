@@ -73,8 +73,6 @@ public:
 		Ar << OutputColorTexture;
 		Ar << PointPosData;
 		Ar << PointPosDataBuffer;
-		Ar << PointColorData;
-		Ar << PointColorDataBuffer;
 
 		return bShaderHasOutdatedParams;
 	}
@@ -88,10 +86,6 @@ public:
 
 	// Sets the unsorted point position input data
 	void SetPointPosData(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV, FUnorderedAccessViewRHIRef BufferUAV2);
-	// Sets the unsorted point color input data
-	void SetPointColorData(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV, FUnorderedAccessViewRHIRef BufferUAV2);
-	// Sets the output texture for the sorted point colors
-	void SetPointColorTexture(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV);
 
 private:
 	//This is the actual output resource that we will bind to the compute shader
@@ -99,8 +93,6 @@ private:
 	FShaderResourceParameter OutputColorTexture;
 	FShaderResourceParameter PointPosData;
 	FShaderResourceParameter PointPosDataBuffer;
-	FShaderResourceParameter PointColorData;
-	FShaderResourceParameter PointColorDataBuffer;
 };
 
 
@@ -124,8 +116,6 @@ public:
 
 		Ar << PointPosData;
 		Ar << PointPosDataBuffer;
-		Ar << PointColorData;
-		Ar << PointColorDataBuffer;
 
 		return bShaderHasOutdatedParams;
 	}
@@ -139,6 +129,4 @@ private:
 	// This is the actual output resource that we will bind to the compute shader
 	FShaderResourceParameter PointPosData;
 	FShaderResourceParameter PointPosDataBuffer;
-	FShaderResourceParameter PointColorData;
-	FShaderResourceParameter PointColorDataBuffer;
 };

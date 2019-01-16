@@ -63,7 +63,7 @@ public:
 	}
 
 	FTexture2DRHIRef GetSortedPointPosTexture() { return m_SortedPointPosTex; }
-	FTexture2DRHIRef GetSortedPointColorsTexture() { return m_SortedPointColorsTex; }
+	FTexture2DRHIRef GetSortedPointColorsTexture() { return NULL; }
 
 	// Send the reference to the point position data to the compute shader
 	void SetPointPosDataReference(TArray<FLinearColor>* data) {
@@ -74,9 +74,7 @@ public:
 
 	// Send the reference to the point color data to the compute shader
 	void SetPointColorDataReference(TArray<uint8>* data) {
-		check(data->Num() <= NUM_ELEMENTS*4);
-		for (int i = 0; i < int(data->Num()/4); i++)
-			PointColorData[i] = FVector4(((float)(*data)[i*4])/255.0f, ((float)(*data)[i*4+1]) / 255.0f, ((float)(*data)[i*4+2]) / 255.0f, ((float)(*data)[i*4+3]) / 255.0f);
+		return;
 	}
 
 private:
@@ -93,21 +91,15 @@ private:
 
 	/** Main textures */
 	FTexture2DRHIRef m_SortedPointPosTex;
-	FTexture2DRHIRef m_SortedPointColorsTex;
 
 	/** Working buffer for the shader */
 	FStructuredBufferRHIParamRef m_PointPosDataBuffer;
-	FStructuredBufferRHIParamRef m_PointColorsDataBuffer;
 
 	/** Input data */
 	TResourceArray<FVector4> PointPosData;
-	TResourceArray<FVector4> PointColorData;
 
 	/** We need a UAV if we want to be able to write to the resource*/
 	FUnorderedAccessViewRHIRef m_SortedPointPosTex_UAV;
-	FUnorderedAccessViewRHIRef m_SortedPointColorsTex_UAV;
 	FUnorderedAccessViewRHIRef m_PointPosDataBuffer_UAV;
 	FUnorderedAccessViewRHIRef m_PointPosDataBuffer_UAV2;
-	FUnorderedAccessViewRHIRef m_PointColorsDataBuffer_UAV;
-	FUnorderedAccessViewRHIRef m_PointColorsDataBuffer_UAV2;
 };

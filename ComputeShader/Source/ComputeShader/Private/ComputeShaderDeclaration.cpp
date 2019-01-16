@@ -38,9 +38,6 @@ FComputeShaderDeclaration::FComputeShaderDeclaration(const ShaderMetaType::Compi
 	OutputTexture.Bind(Initializer.ParameterMap, TEXT("OutputTexture"));
 	PointPosData.Bind(Initializer.ParameterMap, TEXT("PointPosData"));
 	PointPosDataBuffer.Bind(Initializer.ParameterMap, TEXT("PointPosDataBuffer"));
-	OutputColorTexture.Bind(Initializer.ParameterMap, TEXT("OutputColorTexture"));
-	PointColorData.Bind(Initializer.ParameterMap, TEXT("PointColorData"));
-	PointColorDataBuffer.Bind(Initializer.ParameterMap, TEXT("PointColorDataBuffer"));
 }
 
 void FComputeShaderDeclaration::ModifyCompilationEnvironment(EShaderPlatform Platform, FShaderCompilerEnvironment& OutEnvironment)
@@ -67,24 +64,6 @@ void FComputeShaderDeclaration::SetPointPosData(FRHICommandList& RHICmdList, FUn
 		RHICmdList.SetUAVParameter(ComputeShaderRHI, PointPosDataBuffer.GetBaseIndex(), BufferUAV2);
 }
 
-void FComputeShaderDeclaration::SetPointColorData(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV, FUnorderedAccessViewRHIRef BufferUAV2) {
-
-	FComputeShaderRHIParamRef ComputeShaderRHI = GetComputeShader();
-
-	if (PointColorData.IsBound())
-		RHICmdList.SetUAVParameter(ComputeShaderRHI, PointColorData.GetBaseIndex(), BufferUAV);
-	if (PointColorDataBuffer.IsBound())
-		RHICmdList.SetUAVParameter(ComputeShaderRHI, PointColorDataBuffer.GetBaseIndex(), BufferUAV2);
-}
-
-void FComputeShaderDeclaration::SetPointColorTexture(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV) {
-
-	FComputeShaderRHIParamRef ComputeShaderRHI = GetComputeShader();
-
-	if (OutputColorTexture.IsBound())
-		RHICmdList.SetUAVParameter(ComputeShaderRHI, OutputColorTexture.GetBaseIndex(), BufferUAV);
-}
-
 void FComputeShaderDeclaration::SetUniformBuffers(FRHICommandList& RHICmdList, FComputeShaderConstantParameters& ConstantParameters, FComputeShaderVariableParameters& VariableParameters)
 {
 	FComputeShaderConstantParametersRef ConstantParametersBuffer;
@@ -104,12 +83,8 @@ void FComputeShaderDeclaration::UnbindBuffers(FRHICommandList& RHICmdList)
 
 	if (OutputTexture.IsBound())
 		RHICmdList.SetUAVParameter(ComputeShaderRHI, OutputTexture.GetBaseIndex(), FUnorderedAccessViewRHIRef());
-	if (OutputColorTexture.IsBound())
-		RHICmdList.SetUAVParameter(ComputeShaderRHI, OutputColorTexture.GetBaseIndex(), FUnorderedAccessViewRHIRef());
 	if (PointPosData.IsBound())
 		RHICmdList.SetShaderResourceViewParameter(ComputeShaderRHI, PointPosData.GetBaseIndex(), FShaderResourceViewRHIParamRef());
-	if (PointColorData.IsBound())
-		RHICmdList.SetUAVParameter(ComputeShaderRHI, PointColorData.GetBaseIndex(), FUnorderedAccessViewRHIRef());
 }
 
 /////////////////////////////////////////////////////////////////////////////
