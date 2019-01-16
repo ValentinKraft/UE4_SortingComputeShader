@@ -141,18 +141,22 @@ void FComputeShader::ParallelBitonicSort(FRHICommandListImmediate & RHICmdList)
 	TShaderMapRef<FComputeShaderDeclaration> ComputeShader(GetGlobalShaderMap(FeatureLevel));
 	TShaderMapRef<FComputeShaderTransposeDeclaration> ComputeShaderTranspose(GetGlobalShaderMap(FeatureLevel));
 
-	//* Update point positions buffer with new data */
-	m_PointPosDataBuffer_UAV.SafeRelease();
-	FRHIResourceCreateInfo CreateInfo;
-	CreateInfo.ResourceArray = &PointPosData;
-	m_PointPosDataBuffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
-	m_PointPosDataBuffer_UAV = RHICreateUnorderedAccessView(m_PointPosDataBuffer, false, false);
+	if (bUpdateDataInShader) {
+		//* Update point positions buffer with new data */
+		m_PointPosDataBuffer_UAV.SafeRelease();
+		FRHIResourceCreateInfo CreateInfo;
+		CreateInfo.ResourceArray = &PointPosData;
+		m_PointPosDataBuffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
+		m_PointPosDataBuffer_UAV = RHICreateUnorderedAccessView(m_PointPosDataBuffer, false, false);
 
-	//* Update point colors buffer with new data */
-	m_PointColorsDataBuffer_UAV.SafeRelease();
-	CreateInfo.ResourceArray = &PointColorData;
-	m_PointColorsDataBuffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
-	m_PointColorsDataBuffer_UAV = RHICreateUnorderedAccessView(m_PointColorsDataBuffer, false, false);
+		//* Update point colors buffer with new data */
+		m_PointColorsDataBuffer_UAV.SafeRelease();
+		CreateInfo.ResourceArray = &PointColorData;
+		m_PointColorsDataBuffer = RHICreateStructuredBuffer(sizeof(float) * 4, sizeof(float) * 4 * NUM_ELEMENTS, BUF_UnorderedAccess | BUF_ShaderResource, CreateInfo);
+		m_PointColorsDataBuffer_UAV = RHICreateUnorderedAccessView(m_PointColorsDataBuffer, false, false);
+
+		bUpdateDataInShader = false;
+	}
 	
 	//* Pass input data to shader */
 	ComputeShader->SetPointPosData(RHICmdList, m_PointPosDataBuffer_UAV, m_PointPosDataBuffer_UAV2);

@@ -81,6 +81,11 @@ public:
 		}
 	}
 
+	// Should be called when the point and/or position data in the shader should be updated (affects performance!)
+	void UpdateDataInShader() {
+		bUpdateDataInShader = true;
+	}
+
 private:
 	void ParallelBitonicSort(FRHICommandListImmediate& RHICmdList);
 	void SaveScreenshot(FRHICommandListImmediate& RHICmdList);
@@ -88,6 +93,7 @@ private:
 	bool bIsComputeShaderExecuting;
 	bool bIsUnloading;
 	bool bSave;
+	bool bUpdateDataInShader = true;
 
 	FComputeShaderConstantParameters ConstantParameters;
 	FComputeShaderVariableParameters VariableParameters;
