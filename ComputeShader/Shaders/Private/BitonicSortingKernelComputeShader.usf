@@ -100,7 +100,7 @@ void MainComputeShader(uint3 Gid : SV_GroupID,             //atm: -, 0...256, - 
 // Matrix Transpose Compute Shader
 //--------------------------------------------------------------------------------------
 groupshared float4 transpose_shared_data[TRANSPOSE_BLOCK_SIZE * TRANSPOSE_BLOCK_SIZE];
-groupshared float4 transpose_shared_data2[TRANSPOSE_BLOCK_SIZE * TRANSPOSE_BLOCK_SIZE];
+groupshared float4 transpose_shared_data_colors[TRANSPOSE_BLOCK_SIZE * TRANSPOSE_BLOCK_SIZE];
 
 [numthreads(TRANSPOSE_BLOCK_SIZE, TRANSPOSE_BLOCK_SIZE, 1)]
 void TransposeMatrix(uint3 Gid : SV_GroupID,
@@ -109,11 +109,11 @@ void TransposeMatrix(uint3 Gid : SV_GroupID,
                      uint GI : SV_GroupIndex)
 {
     transpose_shared_data[GI] = PointPosDataBuffer[DTid.y * CSVariables.g_iWidth + DTid.x];
-    transpose_shared_data2[GI] = PointColorDataBuffer[DTid.y * CSVariables.g_iWidth + DTid.x];
+    transpose_shared_data_colors[GI] = PointColorDataBuffer[DTid.y * CSVariables.g_iWidth + DTid.x];
     GroupMemoryBarrierWithGroupSync();
 
     uint2 XY = DTid.yx - GTid.yx + GTid.xy;
     PointPosData[XY.y * CSVariables.g_iHeight + XY.x] = transpose_shared_data[GTid.x * TRANSPOSE_BLOCK_SIZE + GTid.y];
-    PointColorData[XY.y * CSVariables.g_iHeight + XY.x] = transpose_shared_data2[GTid.x * TRANSPOSE_BLOCK_SIZE + GTid.y];
+    PointColorData[XY.y * CSVariables.g_iHeight + XY.x] = transpose_shared_data_colors[GTid.x * TRANSPOSE_BLOCK_SIZE + GTid.y];
     GroupMemoryBarrierWithGroupSync();
 }

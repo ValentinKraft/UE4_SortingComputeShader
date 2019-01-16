@@ -72,11 +72,11 @@ public:
 			PointPosData[i] = FVector4((*data)[i]);
 	}
 
-	// Send the reference to the point color data to the compute shader
+	// Send the reference to the point color data to the compute shader (RGBA-encoded)
 	void SetPointColorDataReference(TArray<uint8>* data) {
 		check(data->Num() <= NUM_ELEMENTS*4);
 		for (int i = 0; i < int(data->Num()/4); i++)
-			PointColorData[i] = FVector4(((float)(*data)[i*4])/255.0f, ((float)(*data)[i*4+1]) / 255.0f, ((float)(*data)[i*4+2]) / 255.0f, ((float)(*data)[i*4+3]) / 255.0f);
+			PointColorData[i] = FVector4(((float)(*data)[i*4+2])/255.0f, ((float)(*data)[i*4+1]) / 255.0f, ((float)(*data)[i*4]) / 255.0f, ((float)(*data)[i*4+3]) / 255.0f);
 	}
 
 private:
