@@ -1,5 +1,11 @@
 **Parallel Bitonic Sorting on the GPU by a Compute Shader**
 
+__Installation__
+
+Works for UE4.21 (in master branch). For installation, copy both folder to your Engine/Plugins/Runtime folder.
+
+__Usage__
+
 This is a plugin for the Unreal Engine that realises parallel sorting on the GPU via compute shaders. It sorts three-dimensional vectors according to their distance to the current camera position. Currently only textures with maximum size of 1024\*1024 are supported, that is, 1 Million points can be sorted in total at maximum.
 
 The texture/problem size has to be set manually in "ComputeShaderUsageExample.h" and "BitonicSortingKernelComputeShader.usf":
