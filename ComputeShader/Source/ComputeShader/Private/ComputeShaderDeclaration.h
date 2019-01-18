@@ -31,16 +31,16 @@
 
 //This buffer should contain variables that never, or rarely change
 BEGIN_UNIFORM_BUFFER_STRUCT(FComputeShaderConstantParameters, )
-DECLARE_UNIFORM_BUFFER_STRUCT_MEMBER(float, SimulationSpeed)
+UNIFORM_MEMBER(float, SimulationSpeed)
 END_UNIFORM_BUFFER_STRUCT(FComputeShaderConstantParameters)
 
 //This buffer is for variables that change very often (each frame for example)
 BEGIN_UNIFORM_BUFFER_STRUCT(FComputeShaderVariableParameters, )
-DECLARE_UNIFORM_BUFFER_STRUCT_MEMBER(FVector4, CurrentCamPos)
-DECLARE_UNIFORM_BUFFER_STRUCT_MEMBER(int, g_iLevel)
-DECLARE_UNIFORM_BUFFER_STRUCT_MEMBER(int, g_iLevelMask)
-DECLARE_UNIFORM_BUFFER_STRUCT_MEMBER(int, g_iWidth)
-DECLARE_UNIFORM_BUFFER_STRUCT_MEMBER(int, g_iHeight)
+UNIFORM_MEMBER(FVector4, CurrentCamPos)
+UNIFORM_MEMBER(int, g_iLevel)
+UNIFORM_MEMBER(int, g_iLevelMask)
+UNIFORM_MEMBER(int, g_iWidth)
+UNIFORM_MEMBER(int, g_iHeight)
 END_UNIFORM_BUFFER_STRUCT(FComputeShaderVariableParameters)
 
 typedef TUniformBufferRef<FComputeShaderConstantParameters> FComputeShaderConstantParametersRef;
@@ -60,9 +60,6 @@ public:
 	FComputeShaderDeclaration() {}
 
 	explicit FComputeShaderDeclaration(const ShaderMetaType::CompiledShaderInitializerType& Initializer);
-
-	// Deprecated?
-	//static bool ShouldCache(EShaderPlatform Platform) { return IsFeatureLevelSupported(Platform, ERHIFeatureLevel::SM5); }
 
 	static bool ShouldCompilePermutation(const FGlobalShaderPermutationParameters& Parameters) {
 		return GetMaxSupportedFeatureLevel(Parameters.Platform) >= ERHIFeatureLevel::SM5;
@@ -119,7 +116,9 @@ public:
 
 	explicit FComputeShaderTransposeDeclaration(const ShaderMetaType::CompiledShaderInitializerType& Initializer);
 
-	static bool ShouldCache(EShaderPlatform Platform) { return IsFeatureLevelSupported(Platform, ERHIFeatureLevel::SM5); }
+	static bool ShouldCompilePermutation(const FGlobalShaderPermutationParameters& Parameters) {
+		return GetMaxSupportedFeatureLevel(Parameters.Platform) >= ERHIFeatureLevel::SM5;
+	};
 
 	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment);
 

@@ -30,13 +30,13 @@
 
 //This buffer should contain variables that never, or rarely change
 BEGIN_UNIFORM_BUFFER_STRUCT(FPixelShaderConstantParameters, )
-DECLARE_UNIFORM_BUFFER_STRUCT_MEMBER(FVector4, StartColor)
+UNIFORM_MEMBER(FVector4, StartColor)
 END_UNIFORM_BUFFER_STRUCT(FPixelShaderConstantParameters)
 
 //This buffer is for variables that change very often (each frame for example)
 BEGIN_UNIFORM_BUFFER_STRUCT(FPixelShaderVariableParameters, )
-DECLARE_UNIFORM_BUFFER_STRUCT_MEMBER(float, TextureParameterBlendFactor)
-DECLARE_UNIFORM_BUFFER_STRUCT_MEMBER(FVector4, EndColor)
+UNIFORM_MEMBER(float, TextureParameterBlendFactor)
+UNIFORM_MEMBER(FVector4, EndColor)
 END_UNIFORM_BUFFER_STRUCT(FPixelShaderVariableParameters)
 
 typedef TUniformBufferRef<FPixelShaderConstantParameters> FPixelShaderConstantParametersRef;
@@ -83,11 +83,9 @@ class FVertexShaderExample : public FGlobalShader
 	DECLARE_SHADER_TYPE(FVertexShaderExample, Global);
 public:
 
-	// deprecated?
-	static bool ShouldCache(EShaderPlatform Platform) { return true; }
-	//static bool ShouldCompilePermutation(const FGlobalShaderPermutationParameters& Parameters) {
-	//	return true;
-	//};
+	static bool ShouldCompilePermutation(const FGlobalShaderPermutationParameters& Parameters) {
+		return true;
+	};
 
 	FVertexShaderExample(const ShaderMetaType::CompiledShaderInitializerType& Initializer) :
 		FGlobalShader(Initializer)
@@ -111,12 +109,9 @@ public:
 
 	explicit FPixelShaderDeclaration(const ShaderMetaType::CompiledShaderInitializerType& Initializer);
 
-	// UE4.18 - Deprecated?
-	static bool ShouldCache(EShaderPlatform Platform) { return IsFeatureLevelSupported(Platform, ERHIFeatureLevel::SM5); }
-
-	//static bool ShouldCompilePermutation(const FGlobalShaderPermutationParameters& Parameters) {
-	//	return true;
-	//};
+	static bool ShouldCompilePermutation(const FGlobalShaderPermutationParameters& Parameters) {
+		return true;
+	};
 
 	virtual bool Serialize(FArchive& Ar) override
 	{
