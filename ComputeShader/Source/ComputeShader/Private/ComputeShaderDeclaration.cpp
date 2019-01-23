@@ -25,6 +25,7 @@
 #include "ComputeShaderPrivatePCH.h"
 #include "ShaderParameterUtils.h"
 #include "RHIStaticStates.h"
+#include "ComputeShaderDeclaration.h"
 
 //These are needed to actually implement the constant buffers so they are available inside our shader
 //They also need to be unique over the entire solution since they can in fact be accessed from any shader
@@ -151,8 +152,8 @@ void FComputeShaderTransposeDeclaration::UnbindBuffers(FRHICommandList& RHICmdLi
 
 //This is what will instantiate the shader into the engine from the engine/Shaders folder
 //                      ShaderType                    ShaderFileName                Shader function name       Type
-IMPLEMENT_SHADER_TYPE(, FComputeShaderDeclaration, TEXT("/Plugin/ComputeShader/Private/BitonicSortingKernelComputeShader.usf"), TEXT("MainComputeShader"), SF_Compute);
-IMPLEMENT_SHADER_TYPE(, FComputeShaderTransposeDeclaration, TEXT("/Plugin/ComputeShader/Private/BitonicSortingKernelComputeShader.usf"), TEXT("TransposeMatrix"), SF_Compute);
+IMPLEMENT_SHADER_TYPE(, FComputeShaderDeclaration, TEXT("/ComputeShaderPlugin/BitonicSortingKernelComputeShader.usf"), TEXT("MainComputeShader"), SF_Compute);
+IMPLEMENT_SHADER_TYPE(, FComputeShaderTransposeDeclaration, TEXT("/ComputeShaderPlugin/BitonicSortingKernelComputeShader.usf"), TEXT("TransposeMatrix"), SF_Compute);
 
 //This is required for the plugin to build :)
-IMPLEMENT_MODULE(FDefaultModuleImpl, ComputeShader)
+IMPLEMENT_MODULE(FComputeShaderModule, ComputeShader)

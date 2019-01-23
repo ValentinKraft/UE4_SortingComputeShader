@@ -146,3 +146,11 @@ private:
 	FShaderResourceParameter PointColorData;
 	FShaderResourceParameter PointColorDataBuffer;
 };
+
+class FComputeShaderModule : public IModuleInterface
+{
+	void StartupModule() override {
+		FString ShaderDirectory = FPaths::Combine(FPaths::ProjectPluginsDir(), TEXT("ComputeShader/Shaders/Private"));
+		AddShaderSourceDirectoryMapping("/ComputeShaderPlugin", ShaderDirectory);
+	}
+};
