@@ -72,9 +72,14 @@ public:
 			PointPosData[i] = FVector4((*data)[i]);
 	}
 
-	// Send the reference to the point color data to the compute shader
+	// Send the reference to the point color data to the compute shader (RGBA-encoded)
 	void SetPointColorDataReference(TArray<uint8>* data) {
 		return;
+	}
+
+	// Should be called when the point and/or position data in the shader should be updated (affects performance!)
+	void UpdateDataInShader() {
+		bUpdateDataInShader = true;
 	}
 
 private:
@@ -84,6 +89,7 @@ private:
 	bool bIsComputeShaderExecuting;
 	bool bIsUnloading;
 	bool bSave;
+	bool bUpdateDataInShader = true;
 
 	FComputeShaderConstantParameters ConstantParameters;
 	FComputeShaderVariableParameters VariableParameters;
