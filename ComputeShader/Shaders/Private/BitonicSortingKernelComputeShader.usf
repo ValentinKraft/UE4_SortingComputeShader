@@ -15,6 +15,8 @@
 #define BITONIC_BLOCK_SIZE 1024
 #define TRANSPOSE_BLOCK_SIZE 16
 
+#define FLT_MAX 3.402823466e+38
+
 //--------------------------------------------------------------------------------------
 // Buffers
 //--------------------------------------------------------------------------------------
@@ -53,10 +55,10 @@ void MainComputeShader(uint3 Gid : SV_GroupID,             //atm: -, 0...256, - 
         float dist2 = distance(pos2.gbr, camPos.xyz);
 
         // Ignore invalid (zero) values
-        if (pos1.g == -1 && pos1.b == -1 && pos1.r == -1)
-            dist1 = -dist1;
-        if (pos2.g == -1 && pos2.b == -1 && pos2.r == -1)
-            dist2 = -dist2;
+        if (pos1.g == 0 && pos1.b == 0 && pos1.r == 0)
+            dist1 = -FLT_MAX;
+        if (pos2.g == 0 && pos2.b == 0 && pos2.r == 0)
+            dist2 = -FLT_MAX;
 
         // Atomic compare operation
         float4 result = ((dist1 >= dist2) == (bool) (CSVariables.g_iLevelMask & DTid.x)) ? shared_data[GI ^ j] : shared_data[GI];
@@ -74,7 +76,7 @@ void MainComputeShader(uint3 Gid : SV_GroupID,             //atm: -, 0...256, - 
     // Update output textures at the end
     if (CSVariables.g_iLevelMask == BITONIC_BLOCK_SIZE * BITONIC_BLOCK_SIZE)
     {
-        OutputTexture[DTid.xy] = PointPosData[DTid.y * BITONIC_BLOCK_SIZE + DTid.x];
+        OutputTexture[DTid.xy] = shared_data[GI];
         GroupMemoryBarrierWithGroupSync();
     }
 
