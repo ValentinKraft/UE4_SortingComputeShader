@@ -26,6 +26,8 @@
 
 //#define NUM_THREADS_PER_GROUP_DIMENSION 8 //This has to be the same as in the compute shader's spec [X, X, 1]
 
+const FVector4 ZeroVector = FVector4(0, 0, 0, 0);
+
 FComputeShader::FComputeShader(float SimulationSpeed, int32 SizeX, int32 SizeY, ERHIFeatureLevel::Type ShaderFeatureLevel)
 {
 	FeatureLevel = ShaderFeatureLevel;
@@ -45,7 +47,7 @@ FComputeShader::FComputeShader(float SimulationSpeed, int32 SizeX, int32 SizeY, 
 	m_SortedPointColorsTex_UAV = RHICreateUnorderedAccessView(m_SortedPointColorsTex);
 
 	// Initialise data buffers with invalid values
-	PointPosData.Init(FVector4(-1.f, -1.f, -1.f, -1.f), NUM_ELEMENTS);
+	PointPosData.Init(ZeroVector, NUM_ELEMENTS);
 	PointColorData.Init(FVector4(0.0f, 1.0f, 0.0f, 0.0f), NUM_ELEMENTS);
 
 	// Create UAVs for point position buffer
