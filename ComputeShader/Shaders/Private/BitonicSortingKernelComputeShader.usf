@@ -76,7 +76,7 @@ void MainComputeShader(uint3 Gid : SV_GroupID,             //atm: -, 0...256, - 
     // Update output textures at the end
     if (CSVariables.g_iLevelMask == BITONIC_BLOCK_SIZE * BITONIC_BLOCK_SIZE)
     {
-        OutputTexture[DTid.xy] = shared_data[GI];
+        OutputTexture[DTid.yx] = shared_data[GI];
         GroupMemoryBarrierWithGroupSync();
     }
 
