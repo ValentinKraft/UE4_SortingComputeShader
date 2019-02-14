@@ -52,3 +52,7 @@ A detailed tutorial might follow as well.
 Tested in Unreal 4.18.
 
 [![Demo](https://img.youtube.com/vi/jVZaz-0Y4Ek/0.jpg)](https://www.youtube.com/watch?v=jVZaz-0Y4Ek)
+
+__License__
+
+The plugin is free for personal and academic use. Commercial use has to be negotiated. For more information, send me an E-Mail or read the LICENSE.md.
