@@ -44,11 +44,17 @@ mPixelShader->ExecutePixelShader(mPointColorRT, mComputeShader->GetSortedPointCo
 mSortedPointColorTex = Cast<UTexture>(mPointColorRT);
 ```
 
+If you want to sort the point positions only (without the point colors accordingly), use the "SortingPositionsOnly" branch (speeds up the computation significantly).
+
 To see the plugin in action, see my point cloud renderer plugin for UE4:
+https://github.com/ValentinKraft/UE4_GPUPointCloudRenderer/tree/WithComputeShaderSort
 
-https://github.com/ValentinKraft/UE4_GPUPointCloudRenderer/tree/WithComputeShaderSort_4.18
+__License__
 
-A detailed tutorial might follow as well.
-Tested in Unreal 4.18.
+The plugin is free for personal and academic use. Commercial use has to be negotiated. For more information, send me an E-Mail or read the LICENSE.md.
+
+The plugin was created in the context of a master thesis at the [CGVR institute of the University of Bremen](http://cgvr.cs.uni-bremen.de/).
+
+__Demo__
 
 [![Demo](https://img.youtube.com/vi/jVZaz-0Y4Ek/0.jpg)](https://www.youtube.com/watch?v=jVZaz-0Y4Ek)
