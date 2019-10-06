@@ -2,7 +2,7 @@
 
 __Installation__
 
-Works for UE4.21 (in master branch). For installation, copy both folder to your Engine/Plugins/Runtime folder.
+Tested on UE4.21 (in master branch). Should also work for newer versions of the engine as well. For installation, copy both folder to your Engine/Plugins/Runtime folder.
 
 __Usage__
 
