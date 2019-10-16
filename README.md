@@ -49,6 +49,8 @@ If you want to sort the point positions only (without the point colors according
 To see the plugin in action, see my point cloud renderer plugin for UE4:
 https://github.com/ValentinKraft/UE4_GPUPointCloudRenderer/tree/WithComputeShaderSort
 
+To an in-deep tutorial that explains the details of the implementation, see my tutorial here: http://www.valentinkraft.de/compute-shader-in-unreal-tutorial/
+
 __License__
 
 The plugin is free for personal and academic use. Commercial use has to be negotiated. For more information, send me an E-Mail or read the LICENSE.md.
