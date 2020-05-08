@@ -2,7 +2,7 @@
 
 __Installation__
 
-Works for UE4.21 (in master branch). For installation, copy both folder to your Engine/Plugins/Runtime folder.
+Tested on UE4.21 (in master branch). Should also work for newer versions of the engine as well. For installation, copy both folder to your Engine/Plugins/Runtime folder.
 
 __Usage__
 
@@ -48,6 +48,10 @@ If you want to sort the point positions only (without the point colors according
 
 To see the plugin in action, see my point cloud renderer plugin for UE4:
 https://github.com/ValentinKraft/UE4_GPUPointCloudRenderer/tree/WithComputeShaderSort
+
+__Tutorial__
+
+To an in-deep tutorial that explains the details of the implementation, see my tutorial here: http://www.valentinkraft.de/compute-shader-in-unreal-tutorial/
 
 __License__
 
