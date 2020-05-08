@@ -30,18 +30,18 @@
 #include "DynamicRHIResourceArray.h"
 
 //This buffer should contain variables that never, or rarely change
-BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FComputeShaderConstantParameters, )
-SHADER_PARAMETER(float, SimulationSpeed)
-END_GLOBAL_SHADER_PARAMETER_STRUCT()
+BEGIN_UNIFORM_BUFFER_STRUCT(FComputeShaderConstantParameters, )
+UNIFORM_MEMBER(float, SimulationSpeed)
+END_UNIFORM_BUFFER_STRUCT(FComputeShaderConstantParameters)
 
 //This buffer is for variables that change very often (each frame for example)
-BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FComputeShaderVariableParameters, )
-SHADER_PARAMETER(FVector4, CurrentCamPos)
-SHADER_PARAMETER(int, g_iLevel)
-SHADER_PARAMETER(int, g_iLevelMask)
-SHADER_PARAMETER(int, g_iWidth)
-SHADER_PARAMETER(int, g_iHeight)
-END_GLOBAL_SHADER_PARAMETER_STRUCT()
+BEGIN_UNIFORM_BUFFER_STRUCT(FComputeShaderVariableParameters, )
+UNIFORM_MEMBER(FVector4, CurrentCamPos)
+UNIFORM_MEMBER(int, g_iLevel)
+UNIFORM_MEMBER(int, g_iLevelMask)
+UNIFORM_MEMBER(int, g_iWidth)
+UNIFORM_MEMBER(int, g_iHeight)
+END_UNIFORM_BUFFER_STRUCT(FComputeShaderVariableParameters)
 
 typedef TUniformBufferRef<FComputeShaderConstantParameters> FComputeShaderConstantParametersRef;
 typedef TUniformBufferRef<FComputeShaderVariableParameters> FComputeShaderVariableParametersRef;
