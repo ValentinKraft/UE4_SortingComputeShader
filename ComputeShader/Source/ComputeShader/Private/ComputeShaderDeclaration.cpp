@@ -29,8 +29,8 @@
 
 //These are needed to actually implement the constant buffers so they are available inside our shader
 //They also need to be unique over the entire solution since they can in fact be accessed from any shader
-IMPLEMENT_UNIFORM_BUFFER_STRUCT(FComputeShaderConstantParameters, TEXT("CSConstants"))
-IMPLEMENT_UNIFORM_BUFFER_STRUCT(FComputeShaderVariableParameters, TEXT("CSVariables"))
+IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FComputeShaderConstantParameters, "CSConstants");
+IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FComputeShaderVariableParameters, "CSVariables");
 
 FComputeShaderDeclaration::FComputeShaderDeclaration(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 : FGlobalShader(Initializer)
@@ -52,7 +52,7 @@ void FComputeShaderDeclaration::ModifyCompilationEnvironment(const FGlobalShader
 
 void FComputeShaderDeclaration::SetOutputTexture(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef OutputSurfaceUAV)
 {
-	FComputeShaderRHIParamRef ComputeShaderRHI = GetComputeShader();
+	FRHIComputeShader* ComputeShaderRHI = GetComputeShader();
 
 	if (OutputTexture.IsBound())
 		RHICmdList.SetUAVParameter(ComputeShaderRHI, OutputTexture.GetBaseIndex(), OutputSurfaceUAV);
@@ -60,7 +60,7 @@ void FComputeShaderDeclaration::SetOutputTexture(FRHICommandList& RHICmdList, FU
 
 void FComputeShaderDeclaration::SetPointPosData(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV, FUnorderedAccessViewRHIRef BufferUAV2) {
 
-	FComputeShaderRHIParamRef ComputeShaderRHI = GetComputeShader();
+	FRHIComputeShader* ComputeShaderRHI = GetComputeShader();
 
 	if (PointPosData.IsBound())
 		RHICmdList.SetUAVParameter(ComputeShaderRHI, PointPosData.GetBaseIndex(), BufferUAV);
@@ -70,7 +70,7 @@ void FComputeShaderDeclaration::SetPointPosData(FRHICommandList& RHICmdList, FUn
 
 void FComputeShaderDeclaration::SetPointColorData(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV, FUnorderedAccessViewRHIRef BufferUAV2) {
 
-	FComputeShaderRHIParamRef ComputeShaderRHI = GetComputeShader();
+	FRHIComputeShader* ComputeShaderRHI = GetComputeShader();
 
 	if (PointColorData.IsBound())
 		RHICmdList.SetUAVParameter(ComputeShaderRHI, PointColorData.GetBaseIndex(), BufferUAV);
@@ -80,7 +80,7 @@ void FComputeShaderDeclaration::SetPointColorData(FRHICommandList& RHICmdList, F
 
 void FComputeShaderDeclaration::SetPointColorTexture(FRHICommandList& RHICmdList, FUnorderedAccessViewRHIRef BufferUAV) {
 
-	FComputeShaderRHIParamRef ComputeShaderRHI = GetComputeShader();
+	FRHIComputeShader* ComputeShaderRHI = GetComputeShader();
 
 	if (OutputColorTexture.IsBound())
 		RHICmdList.SetUAVParameter(ComputeShaderRHI, OutputColorTexture.GetBaseIndex(), BufferUAV);
@@ -101,14 +101,14 @@ void FComputeShaderDeclaration::SetUniformBuffers(FRHICommandList& RHICmdList, F
 /* Unbinds buffers that will be used elsewhere */
 void FComputeShaderDeclaration::UnbindBuffers(FRHICommandList& RHICmdList)
 {
-	FComputeShaderRHIParamRef ComputeShaderRHI = GetComputeShader();
+	FRHIComputeShader* ComputeShaderRHI = GetComputeShader();
 
 	if (OutputTexture.IsBound())
 		RHICmdList.SetUAVParameter(ComputeShaderRHI, OutputTexture.GetBaseIndex(), FUnorderedAccessViewRHIRef());
 	if (OutputColorTexture.IsBound())
 		RHICmdList.SetUAVParameter(ComputeShaderRHI, OutputColorTexture.GetBaseIndex(), FUnorderedAccessViewRHIRef());
 	if (PointPosData.IsBound())
-		RHICmdList.SetShaderResourceViewParameter(ComputeShaderRHI, PointPosData.GetBaseIndex(), FShaderResourceViewRHIParamRef());
+		RHICmdList.SetShaderResourceViewParameter(ComputeShaderRHI, PointPosData.GetBaseIndex(), new FRHIShaderResourceView());
 	if (PointColorData.IsBound())
 		RHICmdList.SetUAVParameter(ComputeShaderRHI, PointColorData.GetBaseIndex(), FUnorderedAccessViewRHIRef());
 }
@@ -144,10 +144,10 @@ void FComputeShaderTransposeDeclaration::SetUniformBuffers(FRHICommandList& RHIC
 /* Unbinds buffers that will be used elsewhere */
 void FComputeShaderTransposeDeclaration::UnbindBuffers(FRHICommandList& RHICmdList)
 {
-	FComputeShaderRHIParamRef ComputeShaderRHI = GetComputeShader();
+	FRHIComputeShader* ComputeShaderRHI = GetComputeShader();
 
 	if (PointPosData.IsBound())
-		RHICmdList.SetShaderResourceViewParameter(ComputeShaderRHI, PointPosData.GetBaseIndex(), FShaderResourceViewRHIParamRef());
+		RHICmdList.SetShaderResourceViewParameter(ComputeShaderRHI, PointPosData.GetBaseIndex(), new FRHIShaderResourceView());
 }
 
 //This is what will instantiate the shader into the engine from the engine/Shaders folder

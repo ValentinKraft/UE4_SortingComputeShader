@@ -127,13 +127,6 @@ void FPixelShader::ExecutePixelShaderInternal()
 	TShaderMapRef<FVertexShaderExample> VertexShader(GetGlobalShaderMap(FeatureLevel));
 	TShaderMapRef<FPixelShaderDeclaration> PixelShader(GetGlobalShaderMap(FeatureLevel));
 
-
-
-
-
-
-
-
 	CurrentTexture = CurrentRenderTarget->GetRenderTargetResource()->GetRenderTargetTexture();
 	SetRenderTarget(RHICmdList, CurrentTexture, FTextureRHIRef());
 	//RHICmdList.SetBlendState(TStaticBlendState<>::GetRHI());

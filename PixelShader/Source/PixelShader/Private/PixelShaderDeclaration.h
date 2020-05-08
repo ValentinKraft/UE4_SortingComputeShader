@@ -29,15 +29,15 @@
 #include "RHICommandList.h"
 
 //This buffer should contain variables that never, or rarely change
-BEGIN_UNIFORM_BUFFER_STRUCT(FPixelShaderConstantParameters, )
-UNIFORM_MEMBER(FVector4, StartColor)
-END_UNIFORM_BUFFER_STRUCT(FPixelShaderConstantParameters)
+BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FPixelShaderConstantParameters, )
+SHADER_PARAMETER(FVector4, StartColor)
+END_GLOBAL_SHADER_PARAMETER_STRUCT()
 
 //This buffer is for variables that change very often (each frame for example)
-BEGIN_UNIFORM_BUFFER_STRUCT(FPixelShaderVariableParameters, )
-UNIFORM_MEMBER(float, TextureParameterBlendFactor)
-UNIFORM_MEMBER(FVector4, EndColor)
-END_UNIFORM_BUFFER_STRUCT(FPixelShaderVariableParameters)
+BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FPixelShaderVariableParameters, )
+SHADER_PARAMETER(float, TextureParameterBlendFactor)
+SHADER_PARAMETER(FVector4, EndColor)
+END_GLOBAL_SHADER_PARAMETER_STRUCT()
 
 typedef TUniformBufferRef<FPixelShaderConstantParameters> FPixelShaderConstantParametersRef;
 typedef TUniformBufferRef<FPixelShaderVariableParameters> FPixelShaderVariableParametersRef;
